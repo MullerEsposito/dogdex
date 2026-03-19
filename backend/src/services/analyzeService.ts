@@ -23,7 +23,7 @@ export class AnalyzeService {
     for (const label of labels) {
       const desc = label.description?.toLowerCase() || '';
 
-      const foundKeyword = breedKeywords.find((keyword) => desc.includes(keyword));
+      const foundKeyword = breedKeywords.find((keyword: string) => desc.includes(keyword));
 
       if (foundKeyword) {
         bestBreed = label;
