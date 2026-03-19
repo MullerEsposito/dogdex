@@ -53,17 +53,27 @@ export default function CameraScreen() {
           <Button title="Tirar outra" onPress={() => setPhoto(null)} />
           {result && (
             <View style={{ padding: 20 }}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
-                {result.breed}
-              </Text>
-
-              <Text>Confiança: {(result.confidence * 100).toFixed(1)}%</Text>
-
-              {result.info && (
+              {result.error ? (
+                <Text style={{ color: 'red' }}>{result.error}</Text>
+              ) : (
                 <>
-                  <Text>Temperamento: {result.info.temperament?.join(', ')}</Text>
-                  <Text>Energia: {result.info.energy}</Text>
-                  <Text>Expectativa de vida: {result.info.life}</Text>
+                  <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
+                    {result.breed}
+                  </Text>
+
+                  <Text>
+                    Confiança: {((result.confidence || 0) * 100).toFixed(1)}%
+                  </Text>
+
+                  {result.dogData && (
+                    <>
+                      <Text>
+                        Temperamento: {result.dogData.temperament?.join(', ')}
+                      </Text>
+                      <Text>Energia: {result.dogData.energy}</Text>
+                      <Text>Expectativa de vida: {result.dogData.life}</Text>
+                    </>
+                  )}
                 </>
               )}
             </View>

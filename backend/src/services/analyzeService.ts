@@ -1,16 +1,6 @@
+import { DOG_BREEDS as breedKeywords } from '@dogdex/shared';
 import { visionClient } from '../config/vision';
 import { dogs } from '../data/dogs';
-
-const breedKeywords = [
-  'retriever',
-  'bulldog',
-  'poodle',
-  'beagle',
-  'labrador',
-  'husky',
-  'shepherd',
-  'terrier'
-];
 
 export class AnalyzeService {
   async analyzeImage(imagePath: string) {
@@ -19,14 +9,23 @@ export class AnalyzeService {
 
     let bestBreed = null;
 
-    if (!labels) {
-      return { labels: [], dogs: [] };
+    if (!labels || labels.length === 0) {
+      return {
+        success: true,
+        breed: 'Unknown',
+        normalizedBreed: '',
+        confidence: 0,
+        alternatives: [],
+        dogData: null
+      };
     }
 
     for (const label of labels) {
       const desc = label.description?.toLowerCase() || '';
 
-      if (breedKeywords.includes(desc)) {
+      const foundKeyword = breedKeywords.find((keyword) => desc.includes(keyword));
+
+      if (foundKeyword) {
         bestBreed = label;
         break;
       }
@@ -39,14 +38,14 @@ export class AnalyzeService {
     }
 
     const normalized = this.normalizeBreed(bestBreed?.description || '');
-    const dogData = dogs[normalized];
+    const dogData = dogs[normalized] || null;
  
     return {
       success: true,
       breed: bestBreed?.description || 'Unknown',
       normalizedBreed: normalized,
       confidence: bestBreed?.score || 0,
-      alternatives: labels.slice(0, 3).map(l => l.description || 'Unknown'),
+      alternatives: labels.slice(0, 10).map(l => l.description || 'Unknown'),
       dogData
     };
   }
