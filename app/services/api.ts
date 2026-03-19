@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
+import { AnalyzeResult } from '@dogdex/shared';
 
-export const analyzeDog = async (uri: string) => {
+export const analyzeDog = async (uri: string): Promise<AnalyzeResult> => {
   const formData = new FormData();
 
   if (Platform.OS === 'web') {

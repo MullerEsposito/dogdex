@@ -2,6 +2,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useRef, useState } from 'react';
 import { View, Text, Button, Image } from 'react-native';
 import { analyzeDog } from '../services/api';
+import { AnalyzeResult } from '@dogdex/shared';
 
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
