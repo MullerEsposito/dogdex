@@ -11,10 +11,7 @@ export class AnalyzeController {
 
       const result = await analyzeService.analyzeImage(req.file.path);
 
-      res.json({
-        success: true,
-        ...result
-      });
+      res.json(result);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Erro ao analisar imagem' });

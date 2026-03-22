@@ -1,51 +1,59 @@
-import { DOG_BREEDS as breedKeywords } from '@dogdex/shared';
-import { visionClient } from '../config/vision';
+import { DOG_BREEDS as labels } from '@dogdex/shared';
 import { dogs } from '../data/dogs';
+import { getModel } from '../ml/model';
+
+import fs from 'fs';
+import * as tf from '@tensorflow/tfjs-node';
+
+const IMAGE_SIZE = 160;
+const CONFIDENCE_THRESHOLD = 0.7;
 
 export class AnalyzeService {
   async analyzeImage(imagePath: string) {
-    const [result] = await visionClient.labelDetection(imagePath);
-    const labels = result.labelAnnotations;
+    const model = getModel();
+    const imageBuffer = fs.readFileSync(imagePath);
 
-    let bestBreed = null;
+    let tensor = tf.node.decodeImage(imageBuffer, 3)
+      .resizeBilinear([IMAGE_SIZE, IMAGE_SIZE])
+      .expandDims(0)
+      .toFloat();
 
-    if (!labels || labels.length === 0) {
+    tensor = tensor.div(127.5).sub(1);
+
+    const prediction = model.predict(tensor) as tf.Tensor;
+    const data = await prediction.data();
+
+    const maxIndex = data.indexOf(Math.max(...data));
+    const breed = labels[maxIndex] || 'Unknown';
+    const confidence = data[maxIndex];
+
+    const normalized = this.normalizeBreed(breed);
+    const dogData = dogs[normalized] || null;
+
+    if (confidence < CONFIDENCE_THRESHOLD) {
       return {
-        success: true,
-        breed: 'Unknown',
-        normalizedBreed: '',
-        confidence: 0,
-        alternatives: [],
+        success: false,
+        error: 'Não foi possível identificar a raça com certeza',
+        confidence,
+        alternatives: Array.from(data)
+          .map((score, index) => ({ breed: labels[index], score }))
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 5)
+          .map(a => a.breed),
         dogData: null
       };
     }
 
-    for (const label of labels) {
-      const desc = label.description?.toLowerCase() || '';
-
-      const foundKeyword = breedKeywords.find((keyword: string) => desc.includes(keyword));
-
-      if (foundKeyword) {
-        bestBreed = label;
-        break;
-      }
-    }
-
-    if (!bestBreed) {
-      bestBreed = labels.find(l =>
-        l.description?.toLowerCase().includes('dog')
-      );
-    }
-
-    const normalized = this.normalizeBreed(bestBreed?.description || '');
-    const dogData = dogs[normalized] || null;
- 
     return {
       success: true,
-      breed: bestBreed?.description || 'Unknown',
+      breed,
       normalizedBreed: normalized,
-      confidence: bestBreed?.score || 0,
-      alternatives: labels.slice(0, 10).map(l => l.description || 'Unknown'),
+      confidence,
+      alternatives: Array.from(data)
+        .map((score, index) => ({ breed: labels[index], score }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5)
+        .map(a => a.breed),
       dogData
     };
   }
