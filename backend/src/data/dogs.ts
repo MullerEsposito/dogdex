@@ -183,7 +183,7 @@ export const dogs: Record<string, DogInfo> = {
     life: "7-10 anos",
     origin: "Alemanha",
     group: "Working",
-    image: "https://images.dog.ceo/breeds/ Dane/n02107907_1004.jpg"
+    image: "https://images.dog.ceo/breeds/dane-great/n02107907_1004.jpg"
   },
 
   "cocker spaniel": {
@@ -228,5 +228,35 @@ export const dogs: Record<string, DogInfo> = {
     origin: "Japão",
     group: "Working",
     image: "https://images.dog.ceo/breeds/akita/n02110627_1004.jpg"
+  },
+  "pomeranian": {
+    name: "Lulu da Pomerânia",
+    temperament: ["Extrovertido", "Amigável", "Inteligente"],
+    energy: "Média",
+    size: "Pequeno",
+    life: "12-16 anos",
+    origin: "Alemanha/Polônia",
+    group: "Toy",
+    image: "https://images.dog.ceo/breeds/pomeranian/n02112018_1020.jpg"
+  },
+  "samoyed": {
+    name: "Samioieda",
+    temperament: ["Teimoso", "Amigável", "Sociável"],
+    energy: "Alta",
+    size: "Grande",
+    life: "12-14 anos",
+    origin: "Rússia",
+    group: "Working",
+    image: "https://images.dog.ceo/breeds/samoyed/n02111886_1004.jpg"
+  },
+  "saint bernard": {
+    name: "São Bernardo",
+    temperament: ["Gentil", "Calmo", "Amigável"],
+    energy: "Baixa",
+    size: "Gigante",
+    life: "8-10 anos",
+    origin: "Suíça/Itália",
+    group: "Working",
+    image: "https://images.dog.ceo/breeds/stbernard/n02109525_1021.jpg"
   }
 };
