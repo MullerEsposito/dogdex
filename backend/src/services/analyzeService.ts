@@ -19,11 +19,27 @@ export class AnalyzeService {
 
   private loadExternalLabels() {
     try {
-      const labelsPath = path.join(process.cwd(), 'model', 'dogdex_model_tfjs', 'labels.json');
-      if (fs.existsSync(labelsPath)) {
+      const possiblePaths = [
+        path.join(process.cwd(), 'model', 'dogdex_model_tfjs', 'labels.json'),
+        path.join(process.cwd(), '..', 'model', 'dogdex_model_tfjs', 'labels.json'),
+        // Para quando rodamos via npm run dev no monorepo
+        path.join(process.cwd(), 'backend', 'src', 'shared', 'model', 'dogdex_model_tfjs', 'labels.json')
+      ];
+
+      let labelsPath = '';
+      for (const p of possiblePaths) {
+        if (fs.existsSync(p)) {
+          labelsPath = p;
+          break;
+        }
+      }
+
+      if (labelsPath) {
         const content = fs.readFileSync(labelsPath, 'utf8');
         this.activeLabels = JSON.parse(content);
-        console.log(`✅ Carregadas ${this.activeLabels.length} raças do labels.json`);
+        console.log(`✅ Carregadas ${this.activeLabels.length} raças de: ${labelsPath}`);
+      } else {
+        console.warn('⚠️ labels.json não encontrado em nenhum dos locais, usando padrão do shared.');
       }
     } catch (error) {
       console.warn('⚠️ Não foi possível carregar labels.json, usando padrão.', error);

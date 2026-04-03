@@ -16,8 +16,8 @@ const PORT = process.env.PORT || 3000;
 async function start() {
   try {
     await loadModel();
-    app.listen(PORT, () => {
-      console.log(`Servidor rodando em http://localhost:${PORT}`);
+    app.listen(Number(PORT), '0.0.0.0', () => {
+      console.log(`Servidor rodando em porta ${PORT} 🚀`);
     });
   } catch (error) {
     console.error('Falha ao iniciar o servidor:', error);
