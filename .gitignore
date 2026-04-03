@@ -7,3 +7,7 @@ google-credentials.json
 kaggle.json
 uploads/
 .vscode/
+ml/dataset/
+ml/extract_labels.py
+read_tail.js
+backend/verify_fix.js

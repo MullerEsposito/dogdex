@@ -1,11 +1,11 @@
 import * as tf from '@tensorflow/tfjs-node';
+import path from 'path';
 
 let model: tf.GraphModel;
 
 export async function loadModel(): Promise<void> {
-  model = await tf.loadGraphModel(
-    'file://../model/dogdex_model_tfjs/model.json'
-  );
+  const modelPath = path.resolve(__dirname, '../../../model/dogdex_model_tfjs/model.json');
+  model = await tf.loadGraphModel(`file://${modelPath}`);
   console.log('Modelo carregado 🚀');
 }
 
