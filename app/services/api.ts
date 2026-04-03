@@ -3,6 +3,9 @@ import Constants from 'expo-constants';
 import { AnalyzeResult } from '@dogdex/shared';
 
 const getBaseUrl = () => {
+  const publicUrl = process.env.EXPO_PUBLIC_API_URL;
+  if (publicUrl) return publicUrl;
+
   if (Platform.OS === 'web') return 'http://localhost:3000';
   
   const debuggerHost = Constants.expoConfig?.hostUri;
