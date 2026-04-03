@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2022",
     "module": "commonjs",
+    "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -9,7 +10,7 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@dogdex/shared": ["../shared/src/index.ts"]
+      "@dogdex/shared": ["./src/shared/src/index.ts"]
     }
   },
   "include": ["src/**/*"],
