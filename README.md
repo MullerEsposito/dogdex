@@ -1,60 +1,75 @@
 # DogDex 🐾
 
-DogDex é um projeto monorepo projetado para identificar raças de cachorros a partir de fotos usando aprendizado de máquina (TensorFlow.js) e fornecer informações detalhadas sobre as raças identificadas.
+DogDex é um ecossistema inteligente projetado para identificar raças de cachorros com alta precisão usando o modelo **EfficientNetB0** (TensorFlow) e fornecer informações detalhadas sobre o comportamento e origem dos pets.
 
-## Estrutura do Projeto
+## 🏗️ Estrutura do Projeto (Monorepo)
 
-Este projeto está organizado como um monorepo usando npm workspaces:
+- **`app/`**: Aplicativo móvel (Expo/React Native).
+- **`backend/`**: Servidor Node.js + TensorFlow.js para inferência.
+- **`shared/`**: Lógica de tipos e constantes compartilhada.
+- **`model/`**: O "cérebro" do projeto (Modelo EfficientNetB0 + Labels).
 
-- **`app/`**: Aplicativo móvel construído com Expo e React Native.
-- **`backend/`**: Servidor Node.js com Express e TensorFlow.js para análise de imagens.
-- **`shared/`**: Tipos e constantes comuns usados tanto pelo mobile quanto pelo backend.
-- **`ml/`**: Scripts e notebooks para treinamento do modelo.
-- **`model/`**: Modelos TensorFlow.js treinados.
+---
 
-## Pré-requisitos
+## 🚀 Como Executar
 
-- **Node.js** (v18 ou superior recomendado)
-- **npm** (para gerenciamento de workspaces)
-- **Expo Go** (no seu dispositivo móvel para testes físicos)
-
-### Nota Específica para Windows
-Se você encontrar o erro `ERR_DLOPEN_FAILED` ao carregar o `@tensorflow/tfjs-node` no Windows, certifique-se de que o arquivo `tensorflow.dll` esteja presente no diretório `node_modules/@tensorflow/tfjs-node/lib/napi-v8/`.
-
-## Primeiros Passos
-
-### 1. Instalar Dependências
-A partir do diretório raiz, execute:
+### 1. Preparação
+A partir da raiz do projeto, instale todas as dependências:
 ```bash
 npm install
 ```
 
-### 2. Iniciar o Backend
-O backend precisa estar rodando para analisar as imagens enviadas pelo app.
+### 2. Configuração do App (.env)
+Para que o celular consiga falar com o servidor, crie o arquivo `app/.env`:
+- **Produção (Render):**
+  ```env
+  EXPO_PUBLIC_API_URL=https://dogdex-backend.onrender.com
+  ```
+- **Local:**
+  ```env
+  EXPO_PUBLIC_API_URL=http://<SEU_IP_LOCAL>:3000
+  ```
+
+### 3. Rodando o Backend
+Você pode rodar o servidor de IA localmente:
 ```bash
 npm run backend:dev
 ```
-O servidor iniciará em `http://localhost:3000`.
+*O servidor é resiliente e encontrará a pasta `model` automaticamente tanto na raiz quanto na pasta backend.*
 
-### 3. Iniciar o Aplicativo Móvel
+### 4. Rodando o App Mobile
 ```bash
 npm run app:start
 ```
-- Para **Web**: Pressione `w` no terminal.
-- Para **Android/iOS**: Escaneie o código QR com o aplicativo Expo Go.
+Escaneie o QR Code com o aplicativo **Expo Go** no seu celular.
 
-> [!IMPORTANT]
-> Para conectar a partir de um dispositivo físico, certifique-se de que seu celular e seu computador estejam na mesma rede Wi-Fi. O app detecta automaticamente o IP local da sua máquina.
+---
 
-## Funcionalidades Principais
+## ☁️ Deploy no Render (Dica de Ouro)
 
-- **Câmera em Tempo Real**: Capture fotos de cachorros diretamente no aplicativo.
-- **Identificação de Raças**: Identifica raças comuns como Golden Retriever, Bulldog, Poodle, entre outras.
-- **Informações Detalhadas**: Exibe temperamento, níveis de energia e expectativa de vida de cada raça.
-- **Limite de Confiança**: O sistema só identifica a raça se o modelo tiver pelo menos 70% de certeza.
+Para que este monorepo funcione no Render, usamos a estratégia de **Cópia Interna** no Build Command:
+```bash
+cp -r shared backend/src/shared && npm install && npm run build --workspace=backend
+```
+**Start Command:** `node backend/dist/server.js`
 
-## Tecnologias Utilizadas
+---
 
-- **Frontend**: React Native, Expo, Expo Router, Expo Camera.
-- **Backend**: Node.js, Express, TensorFlow.js (@tensorflow/tfjs-node).
-- **ML**: Python, TensorFlow/Keras (para treinamento).
+## 🧠 Inteligência Artificial
+- **Modelo**: EfficientNetB0 (Otimizado para mobile).
+- **Precisão**: Treinado para identificar **120 raças** de cachorros do dataset Stanford Dogs.
+- **Performance**: Inferência média de < 200ms após o carregamento inicial.
+
+## 🛠️ Tecnologias
+- **Frontend**: React Native, Expo Router.
+- **Backend**: Node.js, Express, @tensorflow/tfjs-node.
+- **Estilo**: Vanilla CSS (Premium Design System).
+
+---
+## 👨‍💻 Autor
+
+**Müller Esposito**
+- GitHub: [@MullerEsposito](https://github.com/MullerEsposito)
+- LinkedIn: [Müller Esposito](https://www.linkedin.com/in/mulleresposito/)
+
+
