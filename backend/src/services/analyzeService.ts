@@ -19,7 +19,7 @@ export class AnalyzeService {
 
   private loadExternalLabels() {
     try {
-      const labelsPath = path.join(process.cwd(), '..', 'model', 'dogdex_model_tfjs', 'labels.json');
+      const labelsPath = path.join(process.cwd(), 'model', 'dogdex_model_tfjs', 'labels.json');
       if (fs.existsSync(labelsPath)) {
         const content = fs.readFileSync(labelsPath, 'utf8');
         this.activeLabels = JSON.parse(content);

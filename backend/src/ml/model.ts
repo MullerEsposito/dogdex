@@ -4,7 +4,7 @@ import path from 'path';
 let model: tf.GraphModel;
 
 export async function loadModel(): Promise<void> {
-  const modelPath = path.join(process.cwd(), '..', 'model', 'dogdex_model_tfjs', 'model.json');
+  const modelPath = path.join(process.cwd(), 'model', 'dogdex_model_tfjs', 'model.json');
   model = await tf.loadGraphModel(`file://${modelPath}`);
   console.log('Modelo carregado 🚀');
 }
