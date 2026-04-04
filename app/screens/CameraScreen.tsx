@@ -14,7 +14,11 @@ export default function CameraScreen() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(true);
+  const [zoom, setZoom] = useState(0);
   const cameraRef = useRef<any>(null);
+
+  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1));
+  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0));
 
   const toggleCamera = () => {
     setIsCameraActive(prev => !prev);
@@ -167,6 +171,7 @@ export default function CameraScreen() {
                 <CameraView
                   style={styles.camera}
                   ref={cameraRef}
+                  zoom={zoom}
                   onCameraReady={() => setIsCameraReady(true)}
                 />
               ) : (
@@ -182,7 +187,7 @@ export default function CameraScreen() {
             {/* OVERLAYS */}
             <View style={styles.cameraOverlay}>
               <View style={styles.overlayTopRow}>
-                <Text style={styles.overlayText}>1.0x</Text>
+                <Text style={styles.overlayText}>{(1 + zoom * 4).toFixed(1)}x</Text>
                 <Ionicons name="camera-outline" size={20} color="rgba(255,255,255,0.8)" />
               </View>
               
@@ -199,12 +204,15 @@ export default function CameraScreen() {
 
             {/* Slider Dots */}
             <View style={styles.sliderContainer}>
-              <View style={styles.sliderDot} />
-              <View style={styles.sliderDot} />
-              <View style={styles.sliderDotActive} />
-              <View style={styles.sliderDot} />
-              <View style={styles.sliderDot} />
-              <View style={styles.sliderDot} />
+              {[5, 4, 3, 2, 1, 0].map(index => {
+                const isActive = Math.round(zoom * 5) === index;
+                return (
+                  <View 
+                    key={index} 
+                    style={isActive ? styles.sliderDotActive : styles.sliderDot} 
+                  />
+                );
+              })}
             </View>
 
             {/* Reticle Brackets */}
@@ -270,14 +278,14 @@ export default function CameraScreen() {
         {/* Right: Interaction (Zoom) */}
         <View style={styles.interactionWrapper}>
           <Text style={styles.interactionTitle}>INTERACTION</Text>
-          <TouchableOpacity style={styles.zoomButton} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.zoomButton} onPress={handleZoomIn} activeOpacity={0.7} disabled={!isCameraActive}>
             <Text style={styles.zoomButtonText}>+</Text>
           </TouchableOpacity>
-          <Text style={styles.interactionLabel}>Add Data</Text>
-          <TouchableOpacity style={styles.zoomButton} activeOpacity={0.7}>
+          <Text style={styles.interactionLabel}>Zoom In</Text>
+          <TouchableOpacity style={styles.zoomButton} onPress={handleZoomOut} activeOpacity={0.7} disabled={!isCameraActive}>
             <Text style={styles.zoomButtonText}>-</Text>
           </TouchableOpacity>
-          <Text style={styles.interactionLabel}>Minimize</Text>
+          <Text style={styles.interactionLabel}>Zoom Out</Text>
         </View>
 
       </View>
