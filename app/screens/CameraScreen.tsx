@@ -1,7 +1,8 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, Image, ActivityIndicator, ScrollView, Alert, Linking, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { analyzeDog } from '../services/api';
 import { AnalyzeResult } from '@dogdex/shared';
 import { styles } from './CameraScreen.styles';
@@ -10,54 +11,117 @@ export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState<any>(null);
   const [result, setResult] = useState<AnalyzeResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [isCameraReady, setIsCameraReady] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(true);
   const cameraRef = useRef<any>(null);
 
-  const handleAnalyze = async () => {
-    if (photo) {
-      setLoading(true);
-      try {
-        const analyzeResponse = await analyzeDog(photo.uri);
-        setResult(analyzeResponse);
-      } catch (error: any) {
-        setResult({ error: 'Erro ao conectar com o servidor' } as any);
-      } finally {
-        setLoading(false);
-      }
+  const toggleCamera = () => {
+    setIsCameraActive(prev => !prev);
+    setIsCameraReady(false);
+  };
+
+  // Animation values for LEDs
+  const ledAnim1 = useRef(new Animated.Value(0.3)).current;
+  const ledAnim2 = useRef(new Animated.Value(0.3)).current;
+  const ledAnim3 = useRef(new Animated.Value(0.3)).current;
+  const mainLensAnim = useRef(new Animated.Value(0.5)).current;
+
+  useEffect(() => {
+    if (status === 'loading') {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(ledAnim1, { toValue: 1, duration: 200, useNativeDriver: true }),
+          Animated.timing(ledAnim1, { toValue: 0.3, duration: 200, useNativeDriver: true }),
+          Animated.timing(ledAnim2, { toValue: 1, duration: 200, useNativeDriver: true }),
+          Animated.timing(ledAnim2, { toValue: 0.3, duration: 200, useNativeDriver: true }),
+          Animated.timing(ledAnim3, { toValue: 1, duration: 200, useNativeDriver: true }),
+          Animated.timing(ledAnim3, { toValue: 0.3, duration: 200, useNativeDriver: true }),
+        ])
+      ).start();
+      
+      Animated.timing(mainLensAnim, {
+        toValue: 0.7,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+      
+    } else {
+      ledAnim1.setValue(0.3);
+      ledAnim2.setValue(0.3);
+      ledAnim3.setValue(0.3);
+      
+      Animated.timing(mainLensAnim, { 
+        toValue: (status === 'success' || status === 'error') ? 1 : 0.5, 
+        duration: 300, 
+        useNativeDriver: true 
+      }).start();
+    }
+  }, [status]);
+
+  const handleAnalyze = async (photoUri: string) => {
+    setStatus('loading');
+    try {
+      const analyzeResponse = await analyzeDog(photoUri);
+      setResult(analyzeResponse);
+      setStatus(analyzeResponse.error ? 'error' : 'success');
+    } catch (error: any) {
+      setResult({ error: 'Erro ao conectar com o servidor' } as any);
+      setStatus('error');
     }
   };
 
   const takePicture = async () => {
+    if (status === 'loading') return;
+    
     if (cameraRef.current && isCameraReady) {
       try {
-        const rawCapture = await cameraRef.current.takePictureAsync({
-          quality: 0.7,
-        });
-        
+        const rawCapture = await cameraRef.current.takePictureAsync({ quality: 0.7 });
         let finalPhoto = rawCapture;
-        // Native Expo SDK 55 compatibility: check if it's a PictureRef without a URI
+
+        // Native Expo SDK 55 compatibility
         if (!rawCapture.uri && rawCapture.savePictureAsync) {
           finalPhoto = await rawCapture.savePictureAsync();
         }
         
         setPhoto(finalPhoto);
+        handleAnalyze(finalPhoto.uri);
       } catch (error: any) {
         console.error('❌ Erro técnico:', error);
         Alert.alert('Erro na Câmera', `Detalhes: ${error.message || 'Erro desconhecido'}`);
+        setStatus('error');
       }
     } else {
       Alert.alert('Aguarde', 'A câmera ainda está carregando...');
     }
   };
 
-  if (!permission) return <SafeAreaView style={styles.centered}><Text>Carregando permissões...</Text></SafeAreaView>;
+  const resetCamera = () => {
+    setPhoto(null);
+    setResult(null);
+    setStatus('idle');
+  };
+
+  const getLensColor = () => {
+    switch (status) {
+      case 'success': return '#4CAF50';
+      case 'error': return '#F44336';
+      default: return '#00FFFF';
+    }
+  };
+
+  if (!permission) return <SafeAreaView style={styles.centered}><Text style={styles.message}>Carregando permissões...</Text></SafeAreaView>;
+  
   if (!permission.granted) {
     return (
       <SafeAreaView style={styles.centered}>
-        <Text style={styles.message}>Precisamos de acesso à câmera para identificar cachorros</Text>
-        <TouchableOpacity style={styles.mainButton} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Permitir Acesso</Text>
+        <Text style={styles.message}>
+          {permission.canAskAgain 
+            ? 'Precisamos de acesso à câmera para identificar cachorros'
+            : 'O acesso à câmera foi bloqueado. Por favor, libere a permissão nas Configurações.'}
+        </Text>
+        <TouchableOpacity style={styles.mainButton} onPress={permission.canAskAgain ? requestPermission : () => Linking.openSettings()}>
+          <Text style={styles.buttonText}>{permission.canAskAgain ? 'Permitir Acesso' : 'Abrir Configurações'}</Text>
         </TouchableOpacity>
       </SafeAreaView>
     );
@@ -65,84 +129,185 @@ export default function CameraScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {!photo ? (
-        <View style={styles.cameraContainer}>
-          <CameraView
-            style={styles.camera}
-            ref={cameraRef}
-            onCameraReady={() => setIsCameraReady(true)}
-          />
+      {/* HEADER: LENS & LEDS */}
+      <View style={styles.headerWrapper}>
+        <Text style={styles.versionText}>Dogdex V1.0</Text>
+        
+        <View style={styles.headerTrack}>
+          {/* Left isolated LED */}
+          <View style={styles.leftLedContainer}>
+            <Animated.View style={[styles.led, styles.ledRed, { opacity: isCameraReady ? 1 : 0.3 }]} />
+          </View>
+          
+          {/* Right 3 LEDs */}
+          <View style={styles.rightLedsContainer}>
+            <Animated.View style={[styles.led, styles.ledRed, { opacity: ledAnim1 }]} />
+            <Animated.View style={[styles.led, styles.ledYellow, { opacity: ledAnim2 }]} />
+            <Animated.View style={[styles.led, styles.ledGreen, { opacity: ledAnim3 }]} />
+          </View>
+        </View>
 
-          <View style={styles.shutterContainer}>
-            <TouchableOpacity
-              style={styles.shutterButton}
-              onPress={takePicture}
-              activeOpacity={0.7}
-            >
-              <View style={styles.shutterInner} />
+        {/* Center Main Lens */}
+        <View style={styles.mainLensContainer}>
+          <View style={styles.mainLensInnerRing}>
+            <Animated.View style={[styles.mainLensGlass, { backgroundColor: getLensColor(), opacity: mainLensAnim }]}>
+              <View style={styles.lensReflection} />
+              <View style={styles.glassHighlight} />
+            </Animated.View>
+          </View>
+        </View>
+      </View>
+
+      {/* VIRTUAL SCREEN VISOR */}
+      <View style={styles.visorOuter}>
+        <View style={styles.visorInner}>
+          <View style={styles.cameraContainer}>
+            {!photo ? (
+              isCameraActive ? (
+                <CameraView
+                  style={styles.camera}
+                  ref={cameraRef}
+                  onCameraReady={() => setIsCameraReady(true)}
+                />
+              ) : (
+                <View style={styles.offlineScreen}>
+                  <Ionicons name="power" size={64} color="#333" />
+                  <Text style={styles.offlineText}>SYSTEM OFFLINE</Text>
+                </View>
+              )
+            ) : (
+              <Image source={{ uri: photo.uri }} style={styles.previewImage} />
+            )}
+            
+            {/* OVERLAYS */}
+            <View style={styles.cameraOverlay}>
+              <View style={styles.overlayTopRow}>
+                <Text style={styles.overlayText}>1.0x</Text>
+                <Ionicons name="camera-outline" size={20} color="rgba(255,255,255,0.8)" />
+              </View>
+              
+              <View style={styles.overlayBottomRow}>
+                {(status === 'loading' || status === 'success') && (
+                  <View style={styles.resultPill}>
+                    <Text style={styles.resultPillText}>
+                      {status === 'loading' ? 'Scanning...' : (result?.breed ? `${result.breed} detected` : 'No match')}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Slider Dots */}
+            <View style={styles.sliderContainer}>
+              <View style={styles.sliderDot} />
+              <View style={styles.sliderDot} />
+              <View style={styles.sliderDotActive} />
+              <View style={styles.sliderDot} />
+              <View style={styles.sliderDot} />
+              <View style={styles.sliderDot} />
+            </View>
+
+            {/* Reticle Brackets */}
+            <View style={styles.reticleCornerTL} />
+            <View style={styles.reticleCornerTR} />
+            <View style={styles.reticleCornerBL} />
+            <View style={styles.reticleCornerBR} />
+          </View>
+        </View>
+      </View>
+
+      {/* BOTTOM TABS PANEL */}
+      <View style={styles.tabsWrapper}>
+        <View style={styles.tabsContainer}>
+          <View style={styles.tabItem}>
+            <Text style={[styles.tabText, styles.tabTextActive]}>SCANNING</Text>
+            <View style={styles.tabIndicatorContainer}>
+              <View style={styles.tabIndicator} />
+            </View>
+          </View>
+          <View style={[styles.tabItem, styles.tabItemCenter]}>
+            <Text style={styles.tabText}>POKEDEX</Text>
+          </View>
+          <View style={styles.tabItem}>
+            <Text style={styles.tabText}>MAP</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* CONTROL PANEL */}
+      <View style={styles.controlPanel}>
+        
+        {/* Left: D-Pad */}
+        <View style={styles.dpadWrapper}>
+          <Text style={styles.dpadTitle}>D-PAX</Text>
+          <View style={styles.dpadCross}>
+            <View style={styles.dpadVertical}>
+              <View style={[styles.dpadArrowPolygon, { borderLeftWidth: 6, borderRightWidth: 6, borderBottomWidth: 10, borderBottomColor: '#FFF' }]} />
+              <View style={[styles.dpadArrowPolygon, { borderLeftWidth: 6, borderRightWidth: 6, borderTopWidth: 10, borderTopColor: '#FFF' }]} />
+            </View>
+            <View style={styles.dpadHorizontal}>
+              <View style={[styles.dpadArrowPolygon, { borderTopWidth: 6, borderBottomWidth: 6, borderRightWidth: 10, borderRightColor: '#FFF' }]} />
+              <View style={[styles.dpadArrowPolygon, { borderTopWidth: 6, borderBottomWidth: 6, borderLeftWidth: 10, borderLeftColor: '#FFF' }]} />
+            </View>
+            <TouchableOpacity style={styles.dpadCenter} onPress={toggleCamera} activeOpacity={0.6}>
+              <Ionicons name="power" size={20} color={isCameraActive ? "#4CAF50" : "#F44336"} />
             </TouchableOpacity>
           </View>
         </View>
-      ) : (
-        <ScrollView contentContainerStyle={styles.previewContainer}>
-          <View style={styles.imageCard}>
-            <Image source={{ uri: photo.uri }} style={styles.previewImage} />
-          </View>
 
-          <View style={styles.controls}>
-            {!loading ? (
-              <>
-                <TouchableOpacity style={styles.mainButton} onPress={handleAnalyze}>
-                  <Text style={styles.buttonText}>Analisar Cachorro</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.secondaryButton} onPress={() => {
-                  setPhoto(null);
-                  setResult(null);
-                }}>
-                  <Text style={styles.secondaryButtonText}>Tirar Outra</Text>
-                </TouchableOpacity>
-              </>
-            ) : (
-              <ActivityIndicator size="large" color="#007AFF" style={{ marginVertical: 20 }} />
-            )}
-          </View>
-
-          {result && (
-            <View style={styles.resultContainer}>
-              {result.error ? (
-                <Text style={styles.errorText}>{result.error}</Text>
-              ) : (
-                <View style={styles.card}>
-                  <Text style={styles.breedTitle}>{result.breed}</Text>
-                  <View style={styles.badge}>
-                    <Text style={styles.confidenceText}>
-                      {((result.confidence || 0) * 100).toFixed(1)}% de precisão
-                    </Text>
-                  </View>
-
-                  {result.dogData && (
-                    <View style={styles.infoSection}>
-                      <InfoRow label="Temperamento" value={result.dogData.temperament?.join(', ') || 'N/A'} />
-                      <InfoRow label="Energia" value={result.dogData.energy || 'N/A'} />
-                      <InfoRow label="Vida" value={result.dogData.life || 'N/A'} />
-                    </View>
-                  )}
-                </View>
-              )}
+        {/* Center: Capture Button */}
+        <View style={styles.captureWrapper}>
+          <Text style={styles.captureTitle}>CAPTURE</Text>
+          <TouchableOpacity onPress={(!photo) ? takePicture : resetCamera} activeOpacity={0.7} disabled={!isCameraActive || (!photo && !isCameraReady)}>
+            <View style={styles.captureButtonOuter}>
+              <View style={styles.captureButtonInner}>
+                <Ionicons name={!photo ? 'camera' : 'refresh'} size={36} color="rgba(255, 255, 255, 0.9)" />
+              </View>
             </View>
-          )}
-        </ScrollView>
-      )}
-    </SafeAreaView>
-  );
-}
+          </TouchableOpacity>
+        </View>
 
-function InfoRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>{label}:</Text>
-      <Text style={styles.infoValue}>{value}</Text>
-    </View>
+        {/* Right: Interaction (Zoom) */}
+        <View style={styles.interactionWrapper}>
+          <Text style={styles.interactionTitle}>INTERACTION</Text>
+          <TouchableOpacity style={styles.zoomButton} activeOpacity={0.7}>
+            <Text style={styles.zoomButtonText}>+</Text>
+          </TouchableOpacity>
+          <Text style={styles.interactionLabel}>Add Data</Text>
+          <TouchableOpacity style={styles.zoomButton} activeOpacity={0.7}>
+            <Text style={styles.zoomButtonText}>-</Text>
+          </TouchableOpacity>
+          <Text style={styles.interactionLabel}>Minimize</Text>
+        </View>
+
+      </View>
+
+        {/* LCD RESULT STRIP */}
+        {photo && (
+          <ScrollView style={styles.lcdScreen} automaticallyAdjustContentInsets={false}>
+            {status === 'loading' && (
+              <Text style={styles.lcdTextTitle}>Analisando DNA...</Text>
+            )}
+            
+            {status === 'error' && (
+              <Text style={styles.lcdTextError}>{result?.error || 'ERRO DE CONEXÃO'}</Text>
+            )}
+
+            {status === 'success' && result && !result.error && (
+              <View>
+                <Text style={styles.lcdTextTitle}><Ionicons name="paw" size={20} color="#0F380F" /> {result.breed}</Text>
+                <Text style={styles.lcdTextSub}>Precisão: {((result.confidence || 0) * 100).toFixed(1)}%</Text>
+                {result.dogData && (
+                  <View style={{ marginTop: 10, borderTopWidth: 1, borderTopColor: '#555', paddingTop: 10 }}>
+                    <Text style={styles.lcdTextSub}>Temperamento: {result.dogData.temperament?.join(', ') || 'N/A'}</Text>
+                    <Text style={styles.lcdTextSub}>Energia: {result.dogData.energy || 'N/A'}</Text>
+                    <Text style={styles.lcdTextSub}>Vida: {result.dogData.life || 'N/A'}</Text>
+                  </View>
+                )}
+              </View>
+            )}
+          </ScrollView>
+        )}
+    </SafeAreaView>
   );
 }
