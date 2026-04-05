@@ -459,15 +459,46 @@ export const styles = StyleSheet.create({
     marginVertical: 4,
   },
 
-  // --- LCD RESULT STRIP ---
+  // --- LCD RESULT STRIP OVERLAY ---
+  lcdScreenWrapper: {
+    position: 'absolute',
+    bottom: '5%',
+    width: '100%',
+    alignSelf: 'center',
+    backgroundColor: '#1E232B',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#383D47',
+    zIndex: 50,
+    padding: 12,
+    elevation: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+  },
+  lcdScreenHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  lcdScreenTitle: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    fontSize: 12,
+  },
+  lcdCloseButton: {
+    padding: 2,
+  },
   lcdScreen: {
     backgroundColor: LCD_GREEN,
     borderWidth: 3,
-    borderColor: '#555',
+    borderColor: '#111',
     borderRadius: 8,
     padding: 12,
-    marginTop: 20,
-    // Inner shadow simulation
+    maxHeight: 250,
     elevation: 1,
   },
   lcdTextTitle: {
