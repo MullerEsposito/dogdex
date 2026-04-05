@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { styles } from '../../screens/CameraScreen.styles';
+import { styles } from './styles';
 
 type ControlPanelProps = {
   isCameraActive: boolean;

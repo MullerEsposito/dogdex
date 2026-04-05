@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image } from 'react-native';
 import { CameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
-import { styles } from '../../screens/CameraScreen.styles';
+import { styles } from './styles';
 import { AnalyzeResult } from '@dogdex/shared';
 
 type VisorProps = {

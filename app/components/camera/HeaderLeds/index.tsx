@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated } from 'react-native';
-import { styles } from '../../screens/CameraScreen.styles';
+import { styles } from './styles';
 
 type HeaderLedsProps = {
   status: 'idle' | 'loading' | 'success' | 'error';

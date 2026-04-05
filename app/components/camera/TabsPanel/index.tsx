@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
-import { styles } from '../../screens/CameraScreen.styles';
+import { styles } from './styles';
 
 export default function TabsPanel() {
   return (
@@ -13,7 +13,7 @@ export default function TabsPanel() {
           </View>
         </View>
         <View style={[styles.tabItem, styles.tabItemCenter]}>
-          <Text style={styles.tabText}>POKEDEX</Text>
+          <Text style={styles.tabText}>DOGDEX</Text>
         </View>
         <View style={styles.tabItem}>
           <Text style={styles.tabText}>MAP</Text>

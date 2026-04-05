@@ -1,0 +1,171 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  // --- CONTROL PANEL ---
+  controlPanel: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    marginTop: 15,
+    paddingBottom: 20,
+    flex: 1,
+  },
+  
+  // Left: D-Pad
+  dpadWrapper: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 90,
+  },
+  dpadTitle: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    marginBottom: 10,
+  },
+  dpadCross: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dpadVertical: {
+    position: 'absolute',
+    width: 26,
+    height: 80,
+    backgroundColor: '#383D47',
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#111',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.6,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  dpadHorizontal: {
+    position: 'absolute',
+    width: 80,
+    height: 26,
+    backgroundColor: '#383D47',
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: '#111',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  dpadCenter: {
+    position: 'absolute',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: '#20252D',
+    borderWidth: 2,
+    borderColor: '#111',
+    zIndex: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+  },
+  dpadArrowPolygon: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+  },
+  
+  // Center: Capture
+  captureWrapper: {
+    alignItems: 'center',
+  },
+  captureTitle: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
+    marginBottom: 8,
+  },
+  captureButtonOuter: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    backgroundColor: '#2A303A', // Dark thick ring
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: '#151A22',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+  },
+  captureButtonInner: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#FA3045', // Bright red dome
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#C01025',
+    elevation: 3,
+    shadowColor: '#FF4050', // Red glow
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+  },
+  cameraIconText: {
+    fontSize: 24,
+  },
+  
+  // Right: Zoom Interaction
+  interactionWrapper: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: 90,
+    height: 120, // Match D-pad height area
+  },
+  interactionTitle: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+    marginBottom: 5,
+  },
+  zoomButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#383D47',
+    borderWidth: 2,
+    borderColor: '#111',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.6,
+  },
+  zoomButtonText: {
+    color: '#FFF',
+    fontSize: 20,
+    fontWeight: 'bold',
+    lineHeight: 22,
+  },
+  interactionLabel: {
+    color: '#FFF',
+    fontSize: 9,
+    marginVertical: 4,
+  }
+});
