@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useCameraPermissions } from 'expo-camera';
-import { Text, TouchableOpacity, Alert, Linking } from 'react-native';
+import { Text, TouchableOpacity, Alert, Linking, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { analyzeDog } from '../services/api';
 import { AnalyzeResult } from '@dogdex/shared';
 import { styles } from './CameraScreen.styles';
@@ -111,8 +112,33 @@ export default function CameraScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <HeaderLeds status={status} isCameraReady={isCameraReady} />
+    <View style={styles.container}>
+      <View style={{...StyleSheet.absoluteFillObject, zIndex: -1}}>
+        <Svg height="100%" width="100%">
+          <Defs>
+            <RadialGradient
+              id="bgGrad"
+              gradientUnits='userSpaceOnUse'
+              cx="50%"
+              cy="45%"
+              rx="10%"
+              ry="100%"
+              fx="50%"
+              fy="50%"
+            >
+              <Stop offset="0%" stopColor="#FF9AA5" />
+              <Stop offset="20%" stopColor="#FF3B5C" />
+              <Stop offset="55%" stopColor="#B0001E" />
+              <Stop offset="80%" stopColor="#c1212b" />
+              <Stop offset="100%" stopColor="#a11427" />
+            </RadialGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#bgGrad)" />
+        </Svg>
+      </View>
+
+      <SafeAreaView style={{ flex: 1 }}>
+        <HeaderLeds status={status} isCameraReady={isCameraReady} />
       
       <Visor 
         photo={photo}
@@ -143,6 +169,13 @@ export default function CameraScreen() {
         result={result}
         onClose={resetCamera}
       />
-    </SafeAreaView>
+
+      <View style={styles.bottomLeftArcOuter} pointerEvents="none" />
+      <View style={styles.bottomLeftArcInner} pointerEvents="none" />
+      <View style={styles.bottomRightArcOuter} pointerEvents="none" />
+      <View style={styles.bottomRightArcInner} pointerEvents="none" />
+      <View style={styles.bottomCenterSweep} pointerEvents="none" />
+      </SafeAreaView>
+    </View>
   );
 }

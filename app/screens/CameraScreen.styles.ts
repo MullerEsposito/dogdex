@@ -14,7 +14,7 @@ export const LCD_DARK = '#0F380F';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: POKEDEX_RED,
+    backgroundColor: 'transparent',
   },
   centered: {
     flex: 1,
@@ -22,6 +22,64 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     backgroundColor: POKEDEX_RED,
+  },
+  
+  // --- HARDWARE EMBOSS DETAILS ---
+  bottomLeftArcOuter: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    width: 30,
+    height: 30,
+    borderBottomLeftRadius: 40,
+    borderBottomWidth: 4.5,
+    borderLeftWidth: 4.5,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  bottomLeftArcInner: {
+    position: 'absolute',
+    bottom: 21,
+    left: 21,
+    width: 30,
+    height: 30,
+    borderBottomLeftRadius: 39,
+    borderBottomWidth: 4.5,
+    borderLeftWidth: 4.5,
+    borderColor: 'rgba(0,0,0,0.37)',
+  },
+  bottomRightArcOuter: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 30,
+    height: 30,
+    borderBottomRightRadius: 40,
+    borderBottomWidth: 4.5,
+    borderRightWidth: 4.5,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  bottomRightArcInner: {
+    position: 'absolute',
+    bottom: 21,
+    right: 21,
+    width: 30,
+    height: 30,
+    borderBottomRightRadius: 39,
+    borderBottomWidth: 4.5,
+    borderRightWidth: 4.5,
+    borderColor: 'rgba(0,0,0,0.37)',
+  },
+  bottomCenterSweep: {
+    position: 'absolute',
+    bottom: 10,
+    left: '35%',
+    right: '35%',
+    borderBottomWidth: 4.5,
+    borderTopLeftRadius: "15%",
+    borderTopRightRadius: "15%",
+    borderBottomLeftRadius: "15%",
+    borderBottomRightRadius: "15%",
+    borderColor: 'rgba(255,255,255,0.22)',
   },
   
   // --- PERMISSIONS / ERRORS ---
