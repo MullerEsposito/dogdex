@@ -55,18 +55,29 @@ export class AnalyzeService {
     const isNewModel = this.activeLabels !== DEFAULT_LABELS;
     const currentSize = isNewModel ? 224 : 160;
 
-    let tensor = tf.node.decodeImage(imageBuffer, 3)
-      .resizeBilinear([currentSize, currentSize])
-      .expandDims(0)
-      .toFloat();
+    let tensor: tf.Tensor | null = null;
+    let prediction: tf.Tensor | null = null;
+    let data: Float32Array | Int32Array | Uint8Array;
 
-    // EfficientNetB0 espera valores [0, 255], MobileNetV2 esperava [-1, 1]
-    if (!isNewModel) {
-      tensor = tensor.div(127.5).sub(1);
+    try {
+      tensor = tf.tidy(() => {
+        let t = tf.node.decodeImage(imageBuffer, 3)
+          .resizeBilinear([currentSize, currentSize])
+          .expandDims(0)
+          .toFloat();
+
+        if (!isNewModel) {
+          return t.div(127.5).sub(1);
+        }
+        return t;
+      });
+
+      prediction = model.predict(tensor) as tf.Tensor;
+      data = await prediction.data();
+    } finally {
+      if (tensor) tensor.dispose();
+      if (prediction) prediction.dispose();
     }
-
-    const prediction = model.predict(tensor) as tf.Tensor;
-    const data = await prediction.data();
 
     const predictions = Array.from(data)
       .map((score, index) => ({
