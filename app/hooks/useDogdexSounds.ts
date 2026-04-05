@@ -7,11 +7,11 @@ export function useDogdexSounds() {
   useEffect(() => {
     const loadSounds = async () => {
       try {
-        const { sound: sPowerOn } = await Audio.Sound.createAsync(require('../../assets/sounds/power_on.wav'));
-        const { sound: sPowerOff } = await Audio.Sound.createAsync(require('../../assets/sounds/power_off.wav'));
-        const { sound: sLoading } = await Audio.Sound.createAsync(require('../../assets/sounds/loading.wav'), { isLooping: true });
-        const { sound: sSuccess } = await Audio.Sound.createAsync(require('../../assets/sounds/success.wav'));
-        const { sound: sError } = await Audio.Sound.createAsync(require('../../assets/sounds/error.wav'));
+        const { sound: sPowerOn } = await Audio.Sound.createAsync(require('../assets/sounds/power_on.wav'));
+        const { sound: sPowerOff } = await Audio.Sound.createAsync(require('../assets/sounds/power_off.wav'));
+        const { sound: sLoading } = await Audio.Sound.createAsync(require('../assets/sounds/loading.wav'), { isLooping: true });
+        const { sound: sSuccess } = await Audio.Sound.createAsync(require('../assets/sounds/success.wav'));
+        const { sound: sError } = await Audio.Sound.createAsync(require('../assets/sounds/error.wav'));
 
         sounds.current = { powerOn: sPowerOn, powerOff: sPowerOff, loading: sLoading, success: sSuccess, error: sError };
       } catch (err) {
