@@ -8,10 +8,11 @@ type LcdOverlayProps = {
   photo: any;
   status: 'idle' | 'loading' | 'success' | 'error';
   result: AnalyzeResult | null;
+  onAddData: () => void;
   onClose: () => void;
 };
 
-export default function LcdOverlay({ photo, status, result, onClose }: LcdOverlayProps) {
+export default function LcdOverlay({ photo, status, result, onAddData, onClose }: LcdOverlayProps) {
   if (!photo) return null;
 
   return (
@@ -41,6 +42,17 @@ export default function LcdOverlay({ photo, status, result, onClose }: LcdOverla
                 <Text style={styles.lcdTextSub}>Energia: {result.dogData.energy || 'N/A'}</Text>
                 <Text style={styles.lcdTextSub}>Vida: {result.dogData.life || 'N/A'}</Text>
               </View>
+            )}
+            
+            {result.breed && (
+              <TouchableOpacity 
+                style={styles.lcdAddButton} 
+                onPress={onAddData}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="add-circle" size={18} color="#0F380F" />
+                <Text style={styles.lcdAddButtonText}>ADD TO DOGDEX</Text>
+              </TouchableOpacity>
             )}
           </View>
         )}

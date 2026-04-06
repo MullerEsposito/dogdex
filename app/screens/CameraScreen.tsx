@@ -3,12 +3,14 @@ import { useCameraPermissions } from 'expo-camera';
 import { Text, TouchableOpacity, Alert, Linking, View, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
+import * as Location from 'expo-location';
 import { analyzeDog } from '../services/api';
 import { AnalyzeResult } from '@dogdex/shared';
 import { styles } from './CameraScreen.styles';
 
 // Hooks
 import { useDogdexSounds } from '../hooks/useDogdexSounds';
+import { useDogdexStorage } from '../hooks/useDogdexStorage';
 
 // UI Components
 import HeaderLeds from '../components/camera/HeaderLeds';
@@ -25,12 +27,21 @@ export default function CameraScreen() {
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [zoom, setZoom] = useState(0);
+  const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
   const cameraRef = useRef<any>(null);
 
   const { playSound, stopLoadingSound } = useDogdexSounds();
+  const { saveEntry } = useDogdexStorage();
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0));
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      setLocationPermission(status === 'granted');
+    })();
+  }, []);
 
   const toggleCamera = () => {
     setIsCameraActive(prev => {
@@ -94,6 +105,49 @@ export default function CameraScreen() {
     setStatus('idle');
   };
 
+  const handleAddData = async () => {
+    if (!photo || !result || status !== 'success') {
+      Alert.alert('Erro', 'Realize primeiro um escaneamento bem-sucedido.');
+      return;
+    }
+
+    try {
+      let addressStr = 'Localização desconhecida';
+      
+      if (locationPermission) {
+        try {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          const [geo] = await Location.reverseGeocodeAsync({
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude
+          });
+
+          if (geo) {
+            addressStr = `${geo.city || geo.subregion || geo.district || ''}${geo.city && geo.region ? ', ' : ''}${geo.region || ''}`.trim() || `Lat: ${loc.coords.latitude.toFixed(2)}, Lon: ${loc.coords.longitude.toFixed(2)}`;
+          } else {
+            addressStr = `${loc.coords.latitude.toFixed(4)}, ${loc.coords.longitude.toFixed(4)}`;
+          }
+        } catch (locErr) {
+          console.warn('Location fetch failed:', locErr);
+          addressStr = 'GPS indisponível';
+        }
+      } else {
+        addressStr = 'Sem permissão GPS';
+      }
+
+      const saved = await saveEntry(photo.uri, result, addressStr);
+      if (saved) {
+        Alert.alert('DogDex Atualizada', `${result.breed} foi adicionado à sua base de dados!`);
+        resetCamera();
+      } else {
+        throw new Error('Falha ao salvar no storage');
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      Alert.alert('Erro', 'Não foi possível salvar os dados do scanner.');
+    }
+  };
+
   if (!permission) return <SafeAreaView style={styles.centered}><Text style={styles.message}>Carregando permissões...</Text></SafeAreaView>;
   
   if (!permission.granted) {
@@ -151,7 +205,6 @@ export default function CameraScreen() {
       />
       
       <TabsPanel />
-
       <ControlPanel 
         isCameraActive={isCameraActive}
         isCameraReady={isCameraReady}
@@ -167,6 +220,7 @@ export default function CameraScreen() {
         photo={photo}
         status={status}
         result={result}
+        onAddData={handleAddData}
         onClose={resetCamera}
       />
 

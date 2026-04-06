@@ -63,5 +63,23 @@ export const styles = StyleSheet.create({
     color: '#800000',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  lcdAddButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginTop: 15,
+    paddingVertical: 10,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderWidth: 1.5,
+    borderColor: '#0F380F',
+    borderRadius: 6,
+  },
+  lcdAddButtonText: {
+    fontFamily: 'monospace',
+    color: '#0F380F',
+    fontSize: 12,
+    fontWeight: 'bold',
   }
 });

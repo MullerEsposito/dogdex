@@ -163,6 +163,22 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     lineHeight: 22,
   },
+  zoomControls: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 5,
+  },
+  zoomButtonSmall: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#383D47',
+    borderWidth: 1.5,
+    borderColor: '#111',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+  },
   interactionLabel: {
     color: '#FFF',
     fontSize: 9,
