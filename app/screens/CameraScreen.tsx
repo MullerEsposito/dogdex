@@ -63,10 +63,20 @@ export default function CameraScreen() {
     }
   }, [status]);
 
+  const MIN_CONFIDENCE = 0.5; // 50% threshold
+
   const handleAnalyze = async (photoUri: string) => {
     setStatus('loading');
     try {
       const analyzeResponse = await analyzeDog(photoUri);
+      
+      // Validação de threshold para evitar falsos positivos (ex: rostos humanos)
+      if (!analyzeResponse.error && (analyzeResponse.confidence || 0) < MIN_CONFIDENCE) {
+        setResult({ error: 'Nenhum cachorro identificado com clareza. Tente aproximar mais.' } as any);
+        setStatus('error');
+        return;
+      }
+
       setResult(analyzeResponse);
       setStatus(analyzeResponse.error ? 'error' : 'success');
     } catch (error: any) {
