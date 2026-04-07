@@ -11,6 +11,7 @@ import { styles } from './CameraScreen.styles';
 // Hooks
 import { useDogdexSounds } from '../hooks/useDogdexSounds';
 import { useDogdexStorage } from '../hooks/useDogdexStorage';
+import { useDogdexSpeech } from '../hooks/useDogdexSpeech';
 
 // UI Components
 import HeaderLeds from '../components/camera/HeaderLeds';
@@ -32,6 +33,7 @@ export default function CameraScreen() {
 
   const { playSound, stopLoadingSound } = useDogdexSounds();
   const { saveEntry } = useDogdexStorage();
+  const { isSpeechEnabled, toggleSpeech, speakAnalyzeResult, stopSpeech } = useDogdexSpeech();
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0));
@@ -58,10 +60,14 @@ export default function CameraScreen() {
       playSound('loading');
     } else {
       stopLoadingSound();
-      if (status === 'success') playSound('success');
-      else if (status === 'error') playSound('error');
+      if (status === 'success') {
+        playSound('success');
+        speakAnalyzeResult(result);
+      } else if (status === 'error') {
+        playSound('error');
+      }
     }
-  }, [status]);
+  }, [status, result]);
 
   const MIN_CONFIDENCE = 0.5; // 50% threshold
 
@@ -110,6 +116,7 @@ export default function CameraScreen() {
   };
 
   const resetCamera = () => {
+    stopSpeech();
     setPhoto(null);
     setResult(null);
     setStatus('idle');
@@ -202,7 +209,12 @@ export default function CameraScreen() {
       </View>
 
       <SafeAreaView style={{ flex: 1 }}>
-        <HeaderLeds status={status} isCameraReady={isCameraReady} />
+        <HeaderLeds 
+          status={status} 
+          isCameraReady={isCameraReady} 
+          isSpeechEnabled={isSpeechEnabled} 
+          onToggleSpeech={toggleSpeech}
+        />
       
       <Visor 
         photo={photo}

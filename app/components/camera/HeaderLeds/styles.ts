@@ -3,21 +3,31 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   // --- HEADER: LENS & LEDS ---
   headerWrapper: {
-    marginTop: 30,
+    marginTop: 20,
     marginBottom: 40,
     width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: 20,
     zIndex: 10,
   },
+  topInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingHorizontal: 10,
+  },
   versionText: {
-    position: 'absolute',
-    top: -15,
-    right: 25,
     color: 'rgba(255,255,255,0.6)',
     fontSize: 12,
     fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  speechToggle: {
+    padding: 6,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
   },
   headerTrack: {
     flexDirection: 'row',

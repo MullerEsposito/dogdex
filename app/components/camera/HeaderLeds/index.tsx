@@ -1,13 +1,16 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated } from 'react-native';
+import { View, Text, Animated, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles';
 
 type HeaderLedsProps = {
   status: 'idle' | 'loading' | 'success' | 'error';
   isCameraReady: boolean;
+  isSpeechEnabled: boolean;
+  onToggleSpeech: () => void;
 };
 
-export default function HeaderLeds({ status, isCameraReady }: HeaderLedsProps) {
+export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onToggleSpeech }: HeaderLedsProps) {
   // Animation values for LEDs
   const ledAnim1 = useRef(new Animated.Value(0.3)).current;
   const ledAnim2 = useRef(new Animated.Value(0.3)).current;
@@ -56,7 +59,16 @@ export default function HeaderLeds({ status, isCameraReady }: HeaderLedsProps) {
 
   return (
     <View style={styles.headerWrapper}>
-      <Text style={styles.versionText}>Dogdex V1.0</Text>
+      <View style={styles.topInfoRow}>
+        <Text style={styles.versionText}>Dogdex V1.0</Text>
+        <TouchableOpacity style={styles.speechToggle} onPress={onToggleSpeech}>
+          <Ionicons 
+            name={isSpeechEnabled ? "volume-medium" : "volume-mute"} 
+            size={18} 
+            color="#FFF" 
+          />
+        </TouchableOpacity>
+      </View>
       
       <View style={styles.headerTrack}>
         <View style={styles.leftLedContainer}>
