@@ -1,5 +1,5 @@
 module.exports = ({ config }) => {
-  const isDev = process.env.APP_ENV === 'development';
+  const isDev = (process.env.APP_ENV || '').trim() === 'development';
 
   return {
     ...config,

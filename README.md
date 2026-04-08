@@ -7,7 +7,8 @@ DogDex é um ecossistema inteligente projetado para identificar raças de cachor
 - **Design de Scanner Físico:** Interface com botões táteis, molduras em relevo 3D e um background nativo com gradiente radial.
 - **Efeitos Sonoros Nativos:** O app agora responde às interações graças aos bindings do `expo-av`, reproduzindo notificações sonoras para os cenários de _Boot, Target Found e Scanning Fail_.
 - **Display LDC Interativo:** Feed da câmera e diagnósticos do Scanner expostos numa representação estética retrô.
-- **Backend Inteligente e Limpo:** A infraestrutura de AI que processa as fotos está totalmente imunizada de _Memory Leaks_. O servidor recicla os tensores nativos no encerramento de todos os _requests_.
+- **Histórico DogDex:** Persistência local de capturas com geolocalização automática (Lat/Long) e armazenamento permanente de imagens.
+- **Narração de Voz (TTS):** Funcionalidade opcional de leitura dos resultados para maior acessibilidade, com narração natural em português.
 - **Nova Splash Screen**: Uma identidade visual premium e focada no momento que você clica no APP.
 
 ## 🏗️ Estrutura do Monorepo
