@@ -60,6 +60,33 @@ npx expo start --dev-client
 
 ---
 
+## ⚙️ Configuração de Build (Android)
+
+Para garantir a estabilidade do build de produção em ambiente **Windows + Monorepo**, as seguintes diretrizes foram estabelecidas:
+
+### 1. Requisitos de Ambiente
+- **Android SDK**: Versão **36** (VanillaIceCream) instalada via Android Studio.
+- **Build-Tools**: Versão **35.0.0**.
+- **Java**: OpenJDK **17** configurado no `JAVA_HOME`.
+- **Node.js**: v18+.
+
+### 2. Estabilidade Monorepo (Windows Fix)
+Devido a limitações do Windows com caminhos longos e symlinks em monorepos, o projeto utiliza:
+- **Root Bridge**: Um arquivo `index.js` na raiz do repositório que serve como ponte para o `app/index.js`. **Não remova o `index.js` da raiz.**
+- **Variável de Controle**: Sempre defina `EXPO_NO_METRO_WORKSPACE_ROOT=1` ao rodar builds nativos para evitar recursão infinita no scanner do Metro.
+
+### 3. Gerando APK Localmente (Produção)
+Se desejar gerar o binário de produção sem usar o EAS Cloud:
+```powershell
+# Na raiz do repositório
+$env:EXPO_NO_METRO_WORKSPACE_ROOT=1
+cd app/android
+.\gradlew.bat assembleRelease
+```
+O APK será gerado em: `app/android/app/build/outputs/apk/release/app-release.apk`
+
+---
+
 ## ☁️ Arquitetura e Nuvem (Render)
 
 A estratégia do Backend foi forjada para não precisar de complexos scripts de _Docker_. Com suporte aos _Environment Variables_ corretos no painel da **Render**, siga o comportamento do _Build Command_:
