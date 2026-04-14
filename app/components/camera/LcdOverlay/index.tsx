@@ -10,9 +10,10 @@ type LcdOverlayProps = {
   result: AnalyzeResult | null;
   onAddData: () => void;
   onClose: () => void;
+  onRetry?: () => void;
 };
 
-export default function LcdOverlay({ photo, status, result, onAddData, onClose }: LcdOverlayProps) {
+export default function LcdOverlay({ photo, status, result, onAddData, onClose, onRetry }: LcdOverlayProps) {
   if (!photo) return null;
 
   return (
@@ -29,7 +30,15 @@ export default function LcdOverlay({ photo, status, result, onAddData, onClose }
         )}
         
         {status === 'error' && (
-          <Text style={styles.lcdTextError}>{result?.error || 'ERRO DE CONEXÃO'}</Text>
+          <View>
+            <Text style={styles.lcdTextError}>{result?.error || 'ERRO DE CONEXÃO'}</Text>
+            {onRetry && (
+              <TouchableOpacity style={styles.lcdAddButton} onPress={onRetry} activeOpacity={0.7}>
+                <Ionicons name="refresh-circle" size={18} color="#0F380F" />
+                <Text style={styles.lcdAddButtonText}>TENTAR NOVAMENTE</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
 
         {status === 'success' && result && !result.error && (

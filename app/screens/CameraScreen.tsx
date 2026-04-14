@@ -114,7 +114,6 @@ function MainCameraScreen() {
     try {
       const analyzeResponse = await analyzeDog(photoUri);
       
-      // Validação de threshold para evitar falsos positivos (ex: rostos humanos)
       if (!analyzeResponse.error && (analyzeResponse.confidence || 0) < MIN_CONFIDENCE) {
         setResult({ error: 'Nenhum cachorro identificado com clareza. Tente aproximar mais.' } as any);
         setStatus('error');
@@ -126,6 +125,12 @@ function MainCameraScreen() {
     } catch (error: any) {
       setResult({ error: 'Erro ao conectar com o servidor' } as any);
       setStatus('error');
+    }
+  };
+
+  const handleRetry = () => {
+    if (photo && photo.uri) {
+      handleAnalyze(photo.uri);
     }
   };
 
@@ -283,6 +288,7 @@ function MainCameraScreen() {
         result={result}
         onAddData={handleAddData}
         onClose={resetCamera}
+        onRetry={handleRetry}
       />
 
       <View style={styles.bottomLeftArcOuter} pointerEvents="none" />
