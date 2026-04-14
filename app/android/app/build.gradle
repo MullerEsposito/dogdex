@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk 36
 
-    namespace 'com.mulleresposito.dogdex'
+    namespace 'com.mulleresposito.dogdex.dev'
     defaultConfig {
-        applicationId 'com.mulleresposito.dogdex'
+        applicationId 'com.mulleresposito.dogdex.dev'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion 36
         versionCode 1

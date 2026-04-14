@@ -18,6 +18,7 @@ const getBaseUrl = () => {
 };
 
 const BASE_URL = getBaseUrl();
+console.log(`[API] Base URL configurada: ${BASE_URL} 🌐`);
 
 export const analyzeDog = async (uri: string): Promise<AnalyzeResult> => {
   const formData = new FormData();
@@ -35,6 +36,37 @@ export const analyzeDog = async (uri: string): Promise<AnalyzeResult> => {
   }
 
   const response = await fetch(`${BASE_URL}/analyze`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  return response.json();
+};
+
+export const sendSupportReport = async (
+  report: { type: 'bug' | 'feature'; text: string; deviceInfo?: any },
+  screenshotUri?: string
+): Promise<{ success: boolean; message: string; previewUrl?: string }> => {
+  const formData = new FormData();
+  formData.append('type', report.type);
+  formData.append('text', report.text);
+  formData.append('deviceInfo', JSON.stringify(report.deviceInfo));
+
+  if (screenshotUri) {
+    if (Platform.OS === 'web') {
+      const response = await fetch(screenshotUri);
+      const blob = await response.blob();
+      formData.append('screenshot', blob, 'screenshot.jpg');
+    } else {
+      formData.append('screenshot', {
+        uri: screenshotUri,
+        name: 'screenshot.jpg',
+        type: 'image/jpeg',
+      } as any);
+    }
+  }
+
+  const response = await fetch(`${BASE_URL}/support`, {
     method: 'POST',
     body: formData,
   });

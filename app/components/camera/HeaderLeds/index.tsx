@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { styles } from './styles';
 
 type HeaderLedsProps = {
@@ -11,6 +12,7 @@ type HeaderLedsProps = {
 };
 
 export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onToggleSpeech }: HeaderLedsProps) {
+  const router = useRouter();
   // Animation values for LEDs
   const ledAnim1 = useRef(new Animated.Value(0.3)).current;
   const ledAnim2 = useRef(new Animated.Value(0.3)).current;
@@ -61,13 +63,18 @@ export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onT
     <View style={styles.headerWrapper}>
       <View style={styles.topInfoRow}>
         <Text style={styles.versionText}>Dogdex V1.0</Text>
-        <TouchableOpacity style={styles.speechToggle} onPress={onToggleSpeech}>
-          <Ionicons 
-            name={isSpeechEnabled ? "volume-medium" : "volume-mute"} 
-            size={18} 
-            color="#FFF" 
-          />
-        </TouchableOpacity>
+        <View style={styles.rightControls}>
+          <TouchableOpacity style={styles.supportButton} onPress={() => router.push('/support' as any)}>
+            <Ionicons name="bug-outline" size={18} color="#FFF" />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.speechToggle} onPress={onToggleSpeech}>
+            <Ionicons 
+              name={isSpeechEnabled ? "volume-medium" : "volume-mute"} 
+              size={18} 
+              color="#FFF" 
+            />
+          </TouchableOpacity>
+        </View>
       </View>
       
       <View style={styles.headerTrack}>
