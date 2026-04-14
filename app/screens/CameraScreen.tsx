@@ -81,6 +81,7 @@ function MainCameraScreen() {
         speakAnalyzeResult(result);
       } else if (status === 'error') {
         playSound('error');
+        speakAnalyzeResult(result);
       }
     }
   }, [status, result]);

@@ -61,7 +61,7 @@ export function useDogdexSpeech() {
   };
 
   const speakAnalyzeResult = (result: AnalyzeResult | null) => {
-    if (!isSpeechEnabled || !result || result.error) return;
+    if (!isSpeechEnabled || !result) return;
 
     const breed = result.breed || 'Cachorro desconhecido';
     const confidence = Math.round((result.confidence || 0) * 100);
@@ -72,7 +72,12 @@ export function useDogdexSpeech() {
       ? lifeRaw 
       : `${lifeRaw.replace('-', ' a ').replace('–', ' a ')}`;
     
-    const textToSpeak = `Análise concluída com ${confidence} por cento de confiança. Identificado: ${breed}. Expectativa de vida: ${lifeFormatted}.`;
+    let textToSpeak = '';
+    if (result.error || !result.breed) {
+      textToSpeak = `Não foi possível identificar a raça.`;
+    } else {
+      textToSpeak = `Análise concluída com ${confidence} por cento de confiança. Identificado: ${breed}. Expectativa de vida: ${lifeFormatted}.`;
+    }
 
     Speech.speak(textToSpeak, {
       language: 'pt-BR',
