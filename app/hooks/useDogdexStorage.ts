@@ -13,6 +13,7 @@ export interface DogdexEntry {
 }
 
 const STORAGE_KEY = '@dogdex_history';
+const TOUR_COMPLETED_KEY = '@dogdex_tour_completed';
 
 export function useDogdexStorage() {
   const saveEntry = async (
@@ -99,5 +100,30 @@ export function useDogdexStorage() {
     }
   };
 
-  return { saveEntry, getEntries, deleteEntry };
+  const hasCompletedTour = async (): Promise<boolean> => {
+    try {
+      const val = await AsyncStorage.getItem(TOUR_COMPLETED_KEY);
+      return val === 'true';
+    } catch {
+      return false;
+    }
+  };
+
+  const completeTour = async (): Promise<void> => {
+    try {
+      await AsyncStorage.setItem(TOUR_COMPLETED_KEY, 'true');
+    } catch (e) {
+      console.error('Error completing tour:', e);
+    }
+  };
+
+  const resetTour = async (): Promise<void> => {
+     try {
+         await AsyncStorage.removeItem(TOUR_COMPLETED_KEY);
+     } catch (e) {
+         console.error('Error resetting tour:', e);
+     }
+  };
+
+  return { saveEntry, getEntries, deleteEntry, hasCompletedTour, completeTour, resetTour };
 }

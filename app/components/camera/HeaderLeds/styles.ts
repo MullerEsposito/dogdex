@@ -73,6 +73,7 @@ export const styles = StyleSheet.create({
   },
   mainLensContainer: {
     position: 'absolute',
+    bottom: -20,
     alignSelf: 'center',
     width: 90,
     height: 90,

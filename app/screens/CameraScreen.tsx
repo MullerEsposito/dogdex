@@ -1,12 +1,13 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useCameraPermissions } from 'expo-camera';
-import { Text, TouchableOpacity, Alert, Linking, View, StyleSheet } from 'react-native';
+import { Text, TouchableOpacity, Alert, Linking, View, StyleSheet, Platform, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import * as Location from 'expo-location';
 import { analyzeDog } from '../services/api';
 import { AnalyzeResult } from '@dogdex/shared';
 import { styles } from './CameraScreen.styles';
+import { CopilotProvider, useCopilot } from 'react-native-copilot';
 
 // Hooks
 import { useDogdexSounds } from '../hooks/useDogdexSounds';
@@ -21,6 +22,19 @@ import ControlPanel from '../components/camera/ControlPanel';
 import LcdOverlay from '../components/camera/LcdOverlay';
 
 export default function CameraScreen() {
+  return (
+    <CopilotProvider 
+      labels={{ skip: "Pular", previous: "Anterior", next: "Próximo", finish: "Fim" }}
+      stepNumberComponent={() => null}
+      tooltipStyle={{ borderRadius: 10, backgroundColor: '#FFF' }}
+      verticalOffset={Platform.OS === 'android' ? (StatusBar.currentHeight || 24) : 0}
+    >
+      <MainCameraScreen />
+    </CopilotProvider>
+  );
+}
+
+function MainCameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [photo, setPhoto] = useState<any>(null);
   const [result, setResult] = useState<AnalyzeResult | null>(null);
@@ -32,8 +46,10 @@ export default function CameraScreen() {
   const cameraRef = useRef<any>(null);
 
   const { playSound, stopLoadingSound } = useDogdexSounds();
-  const { saveEntry } = useDogdexStorage();
+  const { saveEntry, hasCompletedTour, completeTour } = useDogdexStorage();
   const { isSpeechEnabled, toggleSpeech, speakAnalyzeResult, stopSpeech } = useDogdexSpeech();
+  
+  const { start, copilotEvents } = useCopilot();
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0));
@@ -68,6 +84,28 @@ export default function CameraScreen() {
       }
     }
   }, [status, result]);
+
+  useEffect(() => {
+    (async () => {
+      const completed = await hasCompletedTour();
+      if (!completed && permission?.granted) {
+        setTimeout(() => {
+          start();
+        }, 800);
+      }
+    })();
+  }, [permission?.granted]);
+
+  useEffect(() => {
+    if (copilotEvents) {
+      copilotEvents.on('stop', () => {
+        completeTour();
+      });
+      return () => {
+        copilotEvents.off('stop');
+      };
+    }
+  }, [copilotEvents]);
 
   const MIN_CONFIDENCE = 0.5; // 50% threshold
 
@@ -214,6 +252,7 @@ export default function CameraScreen() {
           isCameraReady={isCameraReady} 
           isSpeechEnabled={isSpeechEnabled} 
           onToggleSpeech={toggleSpeech}
+          onStartTour={() => start()}
         />
       
       <Visor 

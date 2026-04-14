@@ -1,6 +1,9 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { styles } from './styles';
+
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
 
 export default function TabsPanel() {
   const router = useRouter();
@@ -15,13 +18,15 @@ export default function TabsPanel() {
           </View>
         </TouchableOpacity>
         
-        <TouchableOpacity 
-          style={[styles.tabItem, styles.tabItemCenter]} 
-          activeOpacity={0.7}
-          onPress={() => router.push('/dogdex')}
-        >
-          <Text style={styles.tabText}>DOGDEX</Text>
-        </TouchableOpacity>
+        <CopilotStep text="Veja aqui todos os cães que você já identificou e salvou." order={7} name="dogdex">
+          <WalkthroughableTouchableOpacity 
+            style={[styles.tabItem, styles.tabItemCenter]} 
+            activeOpacity={0.7}
+            onPress={() => router.push('/dogdex')}
+          >
+            <Text style={styles.tabText}>DOGDEX</Text>
+          </WalkthroughableTouchableOpacity>
+        </CopilotStep>
         
         <TouchableOpacity style={styles.tabItem} activeOpacity={0.7}>
           <Text style={styles.tabText}>MAP</Text>

@@ -2,16 +2,21 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, Animated, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { styles } from './styles';
+
+const WalkthroughableView = walkthroughable(View);
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
 
 type HeaderLedsProps = {
   status: 'idle' | 'loading' | 'success' | 'error';
   isCameraReady: boolean;
   isSpeechEnabled: boolean;
   onToggleSpeech: () => void;
+  onStartTour?: () => void;
 };
 
-export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onToggleSpeech }: HeaderLedsProps) {
+export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onToggleSpeech, onStartTour }: HeaderLedsProps) {
   const router = useRouter();
   // Animation values for LEDs
   const ledAnim1 = useRef(new Animated.Value(0.3)).current;
@@ -64,39 +69,50 @@ export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onT
       <View style={styles.topInfoRow}>
         <Text style={styles.versionText}>Dogdex V1.0</Text>
         <View style={styles.rightControls}>
-          <TouchableOpacity style={styles.supportButton} onPress={() => router.push('/support' as any)}>
-            <Ionicons name="bug-outline" size={18} color="#FFF" />
+          <TouchableOpacity style={styles.speechToggle} onPress={onStartTour} activeOpacity={0.7}>
+            <Ionicons name="help-circle-outline" size={18} color="#FFF" />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.speechToggle} onPress={onToggleSpeech}>
-            <Ionicons 
-              name={isSpeechEnabled ? "volume-medium" : "volume-mute"} 
-              size={18} 
-              color="#FFF" 
-            />
-          </TouchableOpacity>
+          <CopilotStep text="Encontrou um erro ou tem uma ideia? Use o botão de Bug para nos avisar." order={2} name="support">
+            <WalkthroughableTouchableOpacity style={styles.supportButton} onPress={() => router.push('/support' as any)}>
+              <Ionicons name="bug-outline" size={18} color="#FFF" />
+            </WalkthroughableTouchableOpacity>
+          </CopilotStep>
+          <CopilotStep text="Ative ou desative o assistente de voz." order={3} name="speech">
+            <WalkthroughableTouchableOpacity style={styles.speechToggle} onPress={onToggleSpeech}>
+              <Ionicons 
+                name={isSpeechEnabled ? "volume-medium" : "volume-mute"} 
+                size={18} 
+                color="#FFF" 
+              />
+            </WalkthroughableTouchableOpacity>
+          </CopilotStep>
         </View>
       </View>
       
-      <View style={styles.headerTrack}>
-        <View style={styles.leftLedContainer}>
-          <Animated.View style={[styles.led, styles.ledRed, { opacity: isCameraReady ? 1 : 0.3 }]} />
-        </View>
-        
-        <View style={styles.rightLedsContainer}>
-          <Animated.View style={[styles.led, styles.ledRed, { opacity: ledAnim1 }]} />
-          <Animated.View style={[styles.led, styles.ledYellow, { opacity: ledAnim2 }]} />
-          <Animated.View style={[styles.led, styles.ledGreen, { opacity: ledAnim3 }]} />
-        </View>
-      </View>
+      <CopilotStep text="Este é o seu scanner DogDex v1.0. Ele indica se o sistema está pronto e o status da análise em andamento." order={1} name="status">
+        <WalkthroughableView style={{ justifyContent: 'center' }}>
+          <View style={styles.headerTrack}>
+            <View style={styles.leftLedContainer}>
+              <Animated.View style={[styles.led, styles.ledRed, { opacity: isCameraReady ? 1 : 0.3 }]} />
+            </View>
+            
+            <View style={styles.rightLedsContainer}>
+              <Animated.View style={[styles.led, styles.ledRed, { opacity: ledAnim1 }]} />
+              <Animated.View style={[styles.led, styles.ledYellow, { opacity: ledAnim2 }]} />
+              <Animated.View style={[styles.led, styles.ledGreen, { opacity: ledAnim3 }]} />
+            </View>
+          </View>
 
-      <View style={styles.mainLensContainer}>
-        <View style={styles.mainLensInnerRing}>
-          <Animated.View style={[styles.mainLensGlass, { backgroundColor: getLensColor(), opacity: mainLensAnim }]}>
-            <View style={styles.lensReflection} />
-            <View style={styles.glassHighlight} />
-          </Animated.View>
-        </View>
-      </View>
+          <View style={styles.mainLensContainer}>
+            <View style={styles.mainLensInnerRing}>
+              <Animated.View style={[styles.mainLensGlass, { backgroundColor: getLensColor(), opacity: mainLensAnim }]}>
+                <View style={styles.lensReflection} />
+                <View style={styles.glassHighlight} />
+              </Animated.View>
+            </View>
+          </View>
+        </WalkthroughableView>
+      </CopilotStep>
     </View>
   );
 }
