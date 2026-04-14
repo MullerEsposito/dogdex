@@ -183,7 +183,9 @@ function MainCameraScreen() {
           });
 
           if (geo) {
-            addressStr = `${geo.city || geo.subregion || geo.district || ''}${geo.city && geo.region ? ', ' : ''}${geo.region || ''}`.trim() || `Lat: ${loc.coords.latitude.toFixed(2)}, Lon: ${loc.coords.longitude.toFixed(2)}`;
+            const cityPart = geo.city || geo.subregion || geo.district || '';
+            const regionPart = geo.region || '';
+            addressStr = `${cityPart}${cityPart && regionPart ? ', ' : ''}${regionPart}`.trim() || `Lat: ${loc.coords.latitude.toFixed(2)}, Lon: ${loc.coords.longitude.toFixed(2)}`;
           } else {
             addressStr = `${loc.coords.latitude.toFixed(4)}, ${loc.coords.longitude.toFixed(4)}`;
           }
