@@ -9,6 +9,22 @@ export interface DogData {
   image: string;
 }
 
+export interface DeviceInfo {
+  brand?: string | null;
+  modelName?: string | null;
+  osName?: string | null;
+  osVersion?: string | null;
+  platform?: string;
+}
+
+export interface SupportReport {
+  type: 'bug' | 'feature';
+  text: string;
+  screenshot?: string; // Base64 if needed, or we use Multipart upload
+  deviceInfo?: DeviceInfo;
+  timestamp: string;
+}
+
 export interface AnalyzeResult {
   success: boolean;
   breed: string;
