@@ -148,7 +148,7 @@ class SupportController {
       
       console.log('Message sent: %s', info.messageId);
       // Link para visualizar e-mail se for Ethereal
-      const previewUrl = nodemailer.getTestMessageUrl(info);
+      const previewUrl = nodemailer.getTestMessageUrl(info as any);
       if (previewUrl) {
         console.log('Preview URL: %s', previewUrl);
       }
