@@ -14,20 +14,23 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@dogdex/shared": "*",
     "@google-cloud/vision": "^5.3.4",
     "@tensorflow/tfjs-node": "^4.22.0",
     "axios": "^1.13.6",
     "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "fs": "^0.0.1-security",
     "multer": "^2.1.1",
-    "@dogdex/shared": "*"
+    "nodemailer": "^8.0.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/multer": "^2.1.0",
     "@types/node": "^25.5.0",
+    "@types/nodemailer": "^8.0.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
