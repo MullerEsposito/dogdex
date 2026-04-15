@@ -23,10 +23,11 @@ const ITEM_WIDTH = (width - 40) / COLUMN_COUNT;
 
 export default function DogdexScreen() {
   const router = useRouter();
-  const { getEntries, deleteEntry } = useDogdexStorage();
+  const { getEntries, deleteEntry, exportBackup, importBackup } = useDogdexStorage();
   const [entries, setEntries] = useState<DogdexEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDog, setSelectedDog] = useState<DogdexEntry | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -63,6 +64,24 @@ export default function DogdexScreen() {
         ]
       );
     }
+  };
+
+  const handleExport = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    await exportBackup();
+    setIsProcessing(false);
+  };
+
+  const handleImport = async () => {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    const count = await importBackup();
+    if (count > 0) {
+      Alert.alert('Importação concluída', `${count} registro(s) restaurados com sucesso!`);
+      await loadData();
+    }
+    setIsProcessing(false);
   };
 
   const renderItem = ({ item }: { item: DogdexEntry }) => (
@@ -103,7 +122,22 @@ export default function DogdexScreen() {
           <Ionicons name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
         <Text style={styles.title}>DOGDEX INVENTORY</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={handleImport}
+            style={[styles.actionButton, isProcessing && styles.actionButtonDisabled]}
+            disabled={isProcessing}
+          >
+            <Ionicons name="cloud-download-outline" size={20} color={isProcessing ? '#555' : '#4CAF50'} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleExport}
+            style={[styles.actionButton, isProcessing && styles.actionButtonDisabled]}
+            disabled={isProcessing}
+          >
+            <Ionicons name="cloud-upload-outline" size={20} color={isProcessing ? '#555' : '#4A9EDB'} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {loading ? (
@@ -205,6 +239,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  actionButton: {
+    padding: 5,
+    borderRadius: 20,
+    backgroundColor: '#2A303A',
+  },
+  actionButtonDisabled: {
+    opacity: 0.5,
   },
   listContent: {
     padding: 15,

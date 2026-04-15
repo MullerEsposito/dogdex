@@ -9,6 +9,7 @@ DogDex é um ecossistema inteligente projetado para identificar raças de cachor
 - **Display LDC Interativo:** Feed da câmera e diagnósticos do Scanner expostos numa representação estética retrô.
 - **Histórico DogDex:** Persistência local de capturas com geolocalização automática (Lat/Long) e armazenamento permanente de imagens.
 - **Narração de Voz (TTS):** Funcionalidade opcional de leitura dos resultados para maior acessibilidade, com narração natural em português.
+- **Backup & Restore**: Exportação e importação completa de todo o seu histórico (dados + fotos em Base64) em formato `.dogdex.json`, permitindo trocar de aparelho sem perder suas capturas.
 - **Nova Splash Screen**: Uma identidade visual premium e focada no momento que você clica no APP.
 
 ## 🏗️ Estrutura do Monorepo
