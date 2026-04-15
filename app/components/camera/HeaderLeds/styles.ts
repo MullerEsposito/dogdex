@@ -17,6 +17,9 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   versionText: {
+    position: 'absolute',
+    bottom: -30,
+    left: 30,
     color: 'rgba(255,255,255,0.6)',
     fontSize: 12,
     fontWeight: 'bold',
@@ -30,6 +33,11 @@ export const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.1)',
   },
   rightControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  leftControls: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

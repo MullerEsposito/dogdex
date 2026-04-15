@@ -66,12 +66,20 @@ export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onT
 
   return (
     <View style={styles.headerWrapper}>
+      <Text style={styles.versionText}>Dogdex V1.0</Text>
       <View style={styles.topInfoRow}>
-        <Text style={styles.versionText}>Dogdex V1.0</Text>
-        <View style={styles.rightControls}>
+        <View style={styles.leftControls}>
+          <CopilotStep text="Gosta do projeto? Apoie a manutenção do sistema com uma doação!" order={8} name="donate">
+            <WalkthroughableTouchableOpacity style={styles.speechToggle} onPress={() => router.push('/donate' as any)} activeOpacity={0.7}>
+              <Ionicons name="heart-half-outline" size={18} color="#FFF" />
+            </WalkthroughableTouchableOpacity>
+          </CopilotStep>
           <TouchableOpacity style={styles.speechToggle} onPress={onStartTour} activeOpacity={0.7}>
             <Ionicons name="help-circle-outline" size={18} color="#FFF" />
           </TouchableOpacity>
+        </View>
+        
+        <View style={styles.rightControls}>
           <CopilotStep text="Encontrou um erro ou tem uma ideia? Use o botão de Bug para nos avisar." order={2} name="support">
             <WalkthroughableTouchableOpacity style={styles.supportButton} onPress={() => router.push('/support' as any)}>
               <Ionicons name="bug-outline" size={18} color="#FFF" />
