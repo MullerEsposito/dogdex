@@ -2,7 +2,7 @@
   "expo": {
     "name": "dogdex",
     "slug": "dogdex",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "newArchEnabled": false,
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -29,8 +29,8 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 34,
-            "targetSdkVersion": 34,
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
             "kotlinVersion": "2.0.21",
             "extraGradleProperties": [
               "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m",
@@ -46,6 +46,12 @@
         }
       ],
       [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Precisamos da sua localização para salvar onde você encontrou este cão."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/android-icon-foreground.png",
@@ -56,7 +62,8 @@
       ],
       "expo-font",
       "expo-image",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

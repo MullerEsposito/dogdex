@@ -1,14 +1,6 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
 buildscript {
-  ext {
-    buildToolsVersion = "35.0.0"
-    minSdkVersion = 24
-    compileSdkVersion = 36
-    targetSdkVersion = 36
-    kotlinVersion = "2.0.21"
-    kspVersion = "2.0.21-1.0.28"
-  }
   repositories {
     google()
     mavenCentral()
@@ -30,13 +22,3 @@ allprojects {
 
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
-
-allprojects {
-  tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-    kotlinOptions {
-      freeCompilerArgs += [
-        "-Xopt-in=expo.modules.kotlin.annotation.InternalExpoModulesApi"
-      ]
-    }
-  }
-}

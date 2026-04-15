@@ -9,10 +9,10 @@ def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
  * By default you don't need to apply any configuration, just uncomment the lines you need.
  */
 react {
-    entryFile = file("${projectRoot}/index.js")
-    reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile().getCanonicalFile()
+    entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
+    reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
     hermesCommand = new File(["node", "--print", "require.resolve('hermes-compiler/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/hermesc/%OS-BIN%/hermesc"
-    codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile().getCanonicalFile()
+    codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
 
     enableBundleCompression = (findProperty('android.enableBundleCompression') ?: false).toBoolean()
     // Use Expo CLI to bundle the app, this ensures the Metro config
@@ -85,15 +85,15 @@ android {
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
-    compileSdk 36
+    compileSdk rootProject.ext.compileSdkVersion
 
     namespace 'com.mulleresposito.dogdex.dev'
     defaultConfig {
         applicationId 'com.mulleresposito.dogdex.dev'
         minSdkVersion rootProject.ext.minSdkVersion
-        targetSdkVersion 36
+        targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0.0"
+        versionName "0.1.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -104,15 +104,19 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+        release {
+            storeFile file('dogdex-release.keystore')
+            storePassword System.getenv('DOGDEX_STORE_PASS') ?: '@pp.d0gd3x'
+            keyAlias 'dogdex'
+            keyPassword System.getenv('DOGDEX_KEY_PASS') ?: '@pp.d0gd3x'
+        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            // Caution! In production, you need to generate your own keystore file.
-            // see https://reactnative.dev/docs/signed-apk-android.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
@@ -125,14 +129,6 @@ android {
         jniLibs {
             def enableLegacyPackaging = findProperty('expo.useLegacyPackaging') ?: 'false'
             useLegacyPackaging enableLegacyPackaging.toBoolean()
-        }
-        resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
-            pickFirsts += "META-INF/LICENSE*"
-            pickFirsts += "META-INF/NOTICE*"
-            pickFirsts += "META-INF/DEPENDENCIES"
-            pickFirsts += "META-INF/maven/**"
-            pickFirsts += "META-INF/INDEX.LIST"
         }
     }
     androidResources {
