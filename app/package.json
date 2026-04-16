@@ -12,7 +12,8 @@
     "build:android:dev": "cross-env APP_ENV=development npx expo prebuild && cd android && .\\gradlew.bat assembleDebug",
     "start:dev": "cross-env APP_ENV=development npx expo start --dev-client",
     "prebuild:prod": "cross-env APP_ENV=production npx expo prebuild",
-    "build:android:prod": "cross-env APP_ENV=production npx expo prebuild && cd android && .\\gradlew.bat assembleRelease"
+    "build:android:prod": "cross-env APP_ENV=production npx expo prebuild && cd android && .\\gradlew.bat assembleRelease",
+    "bundle:android:prod": "cross-env APP_ENV=production npx expo prebuild && cd android && .\\gradlew.bat bundleRelease"
   },
   "dependencies": {
     "@dogdex/shared": "*",

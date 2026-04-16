@@ -3,6 +3,7 @@ import { View, Text, Animated, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
+import Constants from 'expo-constants';
 import { styles } from './styles';
 
 const WalkthroughableView = walkthroughable(View);
@@ -18,6 +19,7 @@ type HeaderLedsProps = {
 
 export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onToggleSpeech, onStartTour }: HeaderLedsProps) {
   const router = useRouter();
+  const appVersion = Constants.expoConfig?.version || '1.0';
   // Animation values for LEDs
   const ledAnim1 = useRef(new Animated.Value(0.3)).current;
   const ledAnim2 = useRef(new Animated.Value(0.3)).current;
@@ -66,7 +68,7 @@ export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onT
 
   return (
     <View style={styles.headerWrapper}>
-      <Text style={styles.versionText}>Dogdex V1.0</Text>
+      <Text style={styles.versionText}>Dogdex V{appVersion}</Text>
       <View style={styles.topInfoRow}>
         <View style={styles.leftControls}>
           <CopilotStep text="Gosta do projeto? Apoie a manutenção do sistema com uma doação!" order={8} name="donate">
@@ -97,7 +99,7 @@ export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onT
         </View>
       </View>
       
-      <CopilotStep text="Este é o seu scanner DogDex v1.0. Ele indica se o sistema está pronto e o status da análise em andamento." order={1} name="status">
+      <CopilotStep text={`Este é o seu scanner DogDex v${appVersion}. Ele indica se o sistema está pronto e o status da análise em andamento.`} order={1} name="status">
         <WalkthroughableView style={{ justifyContent: 'center' }}>
           <View style={styles.headerTrack}>
             <View style={styles.leftLedContainer}>
