@@ -5,9 +5,7 @@ DogDex é um ecossistema inteligente projetado para identificar raças de cachor
 
 ## 📺 Demonstração em Vídeo
 
-<video src="https://github.com/MullerEsposito/dogdex/raw/master/assets/videos/dogdex-demo.mp4" controls="controls" style="max-width: 100%;">
-  Seu navegador não suporta o player de vídeo. [Clique aqui para assistir o vídeo diretamente](https://github.com/MullerEsposito/dogdex/raw/master/assets/videos/dogdex-demo.mp4).
-</video>
+https://github.com/user-attachments/assets/ba0bfbfe-5c0b-4ed6-8766-26c82e2cbef6
 
 ## ✨ Novidades da V1.0 (Pokedex UI Edition)
 - **Design de Scanner Físico:** Interface com botões táteis, molduras em relevo 3D e um background nativo com gradiente radial.
