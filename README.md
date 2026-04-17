@@ -3,6 +3,10 @@
 
 DogDex é um ecossistema inteligente projetado para identificar raças de cachorros com extrema precisão usando o modelo de Deep Learning **EfficientNetB0**. Com um design de hardware nostálgico e tátil inspirado nos clássicos _Scanners_ (Pokedex), o app oferece uma experiência audiovisual rica para capturar e mapear informações sobre o seu pet.
 
+## 📺 Demonstração em Vídeo
+
+![Demonstração do DogDex](assets/videos/dogdex-presentation.mp4)
+
 ## ✨ Novidades da V1.0 (Pokedex UI Edition)
 - **Design de Scanner Físico:** Interface com botões táteis, molduras em relevo 3D e um background nativo com gradiente radial.
 - **Efeitos Sonoros Nativos:** O app agora responde às interações graças aos bindings do `expo-av`, reproduzindo notificações sonoras para os cenários de _Boot, Target Found e Scanning Fail_.
