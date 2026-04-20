@@ -1,32 +1,32 @@
 # Changelog - DogDex
 
-Acompanhe todas as mudanças, correções e melhorias introduzidas em cada versão do projeto DogDex.
+Track all changes, fixes, and improvements introduced in each version of the DogDex project.
 
-## [0.2.0] - Em Desenvolvimento
+## [0.2.0] - In Development
 
 ### Added
-- **Identificação de Usuário**: Suporte a envio de Nome e E-mail em relatos de erro e sugestões.
-- **Estrutura de Testes E2E**: Implementação de suíte de testes automatizados com Playwright para garantir a estabilidade do fluxo de suporte.
-- **Testes de Integração**: Testes JUnit-style no backend para validar lógica de envio de e-mails e segurança.
+- **User Identification**: Support for sending Name and Email in error reports and suggestions.
+- **E2E Testing Infrastructure**: Implementation of an automated testing suite with Playwright to ensure the stability of the support flow.
+- **Integration Tests**: JUnit-style backend tests to validate email sending logic and security.
 
 ### Fixed
-- **Segurança (XSS)**: Implementada sanitização de inputs com escape de caracteres HTML para prevenir injeção de scripts nos e-mails de suporte.
-- **Header Injection**: Correção de vulnerabilidade que permitia manipulação de cabeçalhos SMTP via campo de e-mail.
+- **Security (XSS)**: Implemented input sanitization with HTML character escaping to prevent script injection in support emails.
+- **Header Injection**: Fixed a vulnerability that allowed SMTP header manipulation via the email field.
 
 ### Security
-- **Rate Limiting**: Limitação de 5 requisições por 15 minutos por IP na rota de suporte para evitar spam.
-- **Upload Hardening**: Restrição de uploads para arquivos de no máximo 1MB e validação estrita de formatos (apenas JPG/PNG).
+- **Rate Limiting**: Limitation of 5 requests per 15 minutes per IP on the support route to prevent spam.
+- **Upload Hardening**: Restriction of uploads to files of maximum 1MB and strict format validation (JPG/PNG only).
 
 ---
 
 ## [0.1.0] - 2026-04-19
 
 ### Added
-- **DogDex App**: Lançamento da primeira versão funcional construída com Expo e React Native.
-- **Mecanismo de IA**: Integração com modelo TensorFlow.js para classificação de raças de cães em tempo real.
-- **Câmera**: Funcionalidade para captura de fotos de cães para análise via IA.
-- **Galeria (Suporte)**: Possibilidade de selecionar imagens da biblioteca para anexar a relatos técnicos.
-- **Sistema de Suporte**: Criação de formulário básico para envio de relatos técnicos.
-- **Backend API**: Servidor Express configurado para processamento de imagens e relatórios.
-- **Shared Package**: Biblioteca compartilhada de interfaces TypeScript para garantir consistência entre frontend e backend.
-- **Design Premium**: Interface moderna com suporte nativo a Dark Mode e animações fluídas.
+- **DogDex App**: Launch of the first functional version built with Expo and React Native.
+- **AI Mechanism**: Integration with TensorFlow.js model for real-time dog breed classification.
+- **Camera**: Functionality to capture dog photos for AI analysis.
+- **Gallery (Support)**: Ability to select images from the library to attach to technical reports.
+- **Support System**: Creation of a basic form for sending technical reports.
+- **Backend API**: Express server configured for image processing and reporting.
+- **Shared Package**: Shared library of TypeScript interfaces to ensure consistency between frontend and backend.
+- **Premium Design**: Modern interface with native Dark Mode support and smooth animations.
