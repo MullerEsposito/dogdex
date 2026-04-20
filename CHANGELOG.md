@@ -2,7 +2,7 @@
 
 Track all changes, fixes, and improvements introduced in each version of the DogDex project.
 
-## [0.2.0] - In Development
+## [0.2.0] - 2026-04-19
 
 ### Added
 - **User Identification**: Support for sending Name and Email in error reports and suggestions.
