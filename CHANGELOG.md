@@ -2,6 +2,17 @@
 
 Track all changes, fixes, and improvements introduced in each version of the DogDex project.
 
+## [0.2.1] - 2026-04-20
+
+### Added
+- **Interactive Build System**: Developer script that allows interactive selection between Localhost and Production backends during the Android build process.
+
+### Improved
+- **Environment Management**: Centralized API URL logic in `app.config.js`, removing hardcoded values from `.env` to prevent environment leaking.
+- **Development Workflow**: Automated backend detection for local development builds.
+
+---
+
 ## [0.2.0] - 2026-04-19
 
 ### Added

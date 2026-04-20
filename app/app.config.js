@@ -15,6 +15,10 @@ module.exports = ({ config }) => {
       bundleIdentifier: isDev 
         ? `${config.android.package}.dev` 
         : config.android.package
+    },
+    extra: {
+      ...config.extra,
+      apiUrl: isDev ? process.env.EXPO_PUBLIC_API_URL : 'https://dogdex-backend.onrender.com',
     }
   };
 };

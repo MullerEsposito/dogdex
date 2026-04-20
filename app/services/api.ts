@@ -3,6 +3,11 @@ import Constants from 'expo-constants';
 import { AnalyzeResult } from '@dogdex/shared';
 
 const getBaseUrl = () => {
+  // 1. Tenta o valor injetado pelo app.config.js (definido no build)
+  const configUrl = Constants.expoConfig?.extra?.apiUrl;
+  if (configUrl) return configUrl;
+
+  // 2. Tenta a variável de ambiente direta (para o script interativo)
   const publicUrl = process.env.EXPO_PUBLIC_API_URL;
   if (publicUrl) return publicUrl;
 
