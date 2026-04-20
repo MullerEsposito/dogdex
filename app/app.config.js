@@ -15,6 +15,9 @@ module.exports = ({ config }) => {
       bundleIdentifier: isDev 
         ? `${config.android.package}.dev` 
         : config.android.package
-    }
+    },
+    plugins: [
+      "expo-secure-store"
+    ]
   };
 };

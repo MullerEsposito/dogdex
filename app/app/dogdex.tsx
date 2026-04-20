@@ -23,14 +23,19 @@ const ITEM_WIDTH = (width - 40) / COLUMN_COUNT;
 
 export default function DogdexScreen() {
   const router = useRouter();
-  const { getEntries, deleteEntry, exportBackup, importBackup } = useDogdexStorage();
+  const { getEntries, deleteEntry, exportBackup, importBackup, syncWithCloud } = useDogdexStorage();
   const [entries, setEntries] = useState<DogdexEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDog, setSelectedDog] = useState<DogdexEntry | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    loadData();
+    const init = async () => {
+      await loadData();
+      await handleSync(); // Auto-sync on load
+    };
+    init();
   }, []);
 
   const loadData = async () => {
@@ -38,6 +43,23 @@ export default function DogdexScreen() {
     const data = await getEntries();
     setEntries(data);
     setLoading(false);
+  };
+
+  const handleSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const result = await syncWithCloud();
+      if (result.pulled > 0 || result.pushed > 0) {
+        // Reload if anything changed
+        const data = await getEntries();
+        setEntries(data);
+      }
+    } catch (err) {
+      console.warn('Silent sync failed:', err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -95,6 +117,16 @@ export default function DogdexScreen() {
         <View style={styles.confidenceBadge}>
           <Text style={styles.confidenceText}>{((item.confidence || 0) * 100).toFixed(0)}%</Text>
         </View>
+        
+        {/* Sync Status Icon */}
+        <View style={styles.syncIndicator}>
+          <Ionicons 
+            name={item.status === 'synced' ? "cloud-done" : "cloud-upload"} 
+            size={14} 
+            color={item.status === 'synced' ? "#4CAF50" : "#FFA000"} 
+          />
+        </View>
+
         <TouchableOpacity 
           style={styles.deleteButton} 
           onPress={() => handleDelete(item.id, item.breedName)}
@@ -123,6 +155,17 @@ export default function DogdexScreen() {
         </TouchableOpacity>
         <Text style={styles.title}>DOGDEX INVENTORY</Text>
         <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={handleSync}
+            style={[styles.actionButton, isSyncing && styles.actionButtonDisabled]}
+            disabled={isSyncing}
+          >
+            <Ionicons 
+              name={isSyncing ? "sync" : "refresh"} 
+              size={20} 
+              color={isSyncing ? "#555" : "#FFF"} 
+            />
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={handleImport}
             style={[styles.actionButton, isProcessing && styles.actionButtonDisabled]}
@@ -298,6 +341,14 @@ const styles = StyleSheet.create({
   },
   cardInfo: {
     padding: 10,
+  },
+  syncIndicator: {
+    position: 'absolute',
+    top: 8,
+    right: 45, // Next to confidence badge
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 4,
+    borderRadius: 12,
   },
   breedName: {
     color: '#FFF',

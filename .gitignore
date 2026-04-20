@@ -14,6 +14,12 @@ backend/verify_fix.js
 backend/src/shared
 backend/uploads/
 
+# Databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
 # Playwright
 test-results/
 playwright-report/

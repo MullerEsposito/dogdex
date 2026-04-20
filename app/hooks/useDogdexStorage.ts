@@ -4,6 +4,8 @@ import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import { Alert } from 'react-native';
 import { AnalyzeResult } from '@dogdex/shared';
+import { useAuth } from './useAuth';
+import { syncService } from '../services/syncService';
 
 export interface DogdexEntry {
   id: string;
@@ -13,12 +15,14 @@ export interface DogdexEntry {
   locationAddr: string;
   imageUri: string;
   dogData: AnalyzeResult['dogData'];
+  status?: 'local' | 'synced';
 }
 
 const STORAGE_KEY = '@dogdex_history';
 const TOUR_COMPLETED_KEY = '@dogdex_tour_completed';
 
 export function useDogdexStorage() {
+  const { token } = useAuth();
   const saveEntry = async (
     photoUri: string,
     result: AnalyzeResult,
@@ -52,14 +56,30 @@ export function useDogdexStorage() {
         confidence: result.confidence || 0,
         locationAddr,
         imageUri: finalImageUri,
-        dogData: result.dogData
+        dogData: result.dogData,
+        status: 'local'
       };
 
       const existingStr = await AsyncStorage.getItem(STORAGE_KEY);
       const existing: DogdexEntry[] = existingStr ? JSON.parse(existingStr) : [];
-      const updated = [newEntry, ...existing];
+      let updated = [newEntry, ...existing];
       
+      // Save locally first
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+      // Try background sync if logged in
+      if (token) {
+        try {
+          await syncService.push(token, [newEntry]);
+          // If successful, mark as synced
+          newEntry.status = 'synced';
+          const finalUpdate = [newEntry, ...existing];
+          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(finalUpdate));
+        } catch (syncErr) {
+          console.warn('Background sync failed, entry remains local:', syncErr);
+        }
+      }
+
       return newEntry;
     } catch (error) {
       console.error('Error saving Dogdex entry:', error);
@@ -233,5 +253,65 @@ export function useDogdexStorage() {
     }
   };
 
-  return { saveEntry, getEntries, deleteEntry, hasCompletedTour, completeTour, resetTour, exportBackup, importBackup };
+  const syncWithCloud = async (): Promise<{ pulled: number, pushed: number }> => {
+    if (!token) return { pulled: 0, pushed: 0 };
+    
+    try {
+      // 1. Pull from cloud
+      const cloudEntries = await syncService.pull(token);
+      
+      // 2. Get local entries
+      const localStr = await AsyncStorage.getItem(STORAGE_KEY);
+      const local: DogdexEntry[] = localStr ? JSON.parse(localStr) : [];
+      
+      // 3. Find pending locals to push
+      const pending = local.filter(e => e.status !== 'synced');
+      if (pending.length > 0) {
+        await syncService.push(token, pending);
+      }
+
+      // 4. Merge entries (prefer cloud data as source of truth for synced fields)
+      const mergedMap = new Map<string, DogdexEntry>();
+      
+      // Add local first
+      local.forEach(e => mergedMap.set(e.id, { ...e, status: e.status || 'local' }));
+      
+      // Add cloud entries (overwriting local if same ID, marking as synced)
+      cloudEntries.forEach(ce => {
+        const existing = mergedMap.get(ce.id);
+        mergedMap.set(ce.id, {
+          ...ce,
+          // Keep local image URI if it exists locally, otherwise it's a "cloud-only" entry until we download images (future phase)
+          imageUri: existing?.imageUri || ce.imageUri, 
+          status: 'synced'
+        });
+      });
+
+      const merged = Array.from(mergedMap.values()).sort(
+        (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      
+      return { 
+        pulled: cloudEntries.length, 
+        pushed: pending.length 
+      };
+    } catch (error) {
+      console.error('Sync failed:', error);
+      throw error;
+    }
+  };
+
+  return { 
+    saveEntry, 
+    getEntries, 
+    deleteEntry, 
+    hasCompletedTour, 
+    completeTour, 
+    resetTour, 
+    exportBackup, 
+    importBackup,
+    syncWithCloud 
+  };
 }
