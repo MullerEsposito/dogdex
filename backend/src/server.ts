@@ -41,4 +41,9 @@ async function start() {
   }
 }
 
-start();
+// Inicia o servidor apenas se o arquivo for executado diretamente
+if (require.main === module) {
+  start();
+}
+
+export { app, start };

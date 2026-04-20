@@ -12,3 +12,10 @@ ml/extract_labels.py
 read_tail.js
 backend/verify_fix.js
 backend/src/shared
+backend/uploads/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/

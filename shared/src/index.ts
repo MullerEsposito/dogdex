@@ -20,6 +20,8 @@ export interface DeviceInfo {
 export interface SupportReport {
   type: 'bug' | 'feature';
   text: string;
+  userName?: string;
+  userEmail?: string;
   screenshot?: string; // Base64 if needed, or we use Multipart upload
   deviceInfo?: DeviceInfo;
   timestamp: string;

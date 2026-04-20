@@ -11,7 +11,8 @@
     "baseUrl": ".",
     "paths": {
       "@dogdex/shared": ["./src/shared/src/index.ts"]
-    }
+    },
+    "types": ["jest", "node"]
   },
   "include": ["src/**/*"],
   "exclude": ["src/scripts/test-logic.ts"]

@@ -48,19 +48,37 @@ class SupportController {
     });
   }
 
+  private escapeHTML(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   async handle(req: Request, res: Response) {
     console.log('--- NOVO RELATO DE SUPORTE ---');
     console.log('Body:', req.body);
     console.log('File:', req.file ? req.file.filename : 'Nenhum');
 
     try {
-      const { type, text, deviceInfo } = req.body;
+      let { type, text, deviceInfo, userName, userEmail } = req.body;
       
       if (!type || !text) {
         return res.status(400).json({ 
           success: false, 
           error: 'Tipo e texto são obrigatórios.' 
         });
+      }
+
+      // Sanitização básica contra XSS
+      userName = userName ? this.escapeHTML(userName) : userName;
+      text = this.escapeHTML(text);
+
+      // Proteção contra Header Injection
+      if (userEmail) {
+        userEmail = userEmail.replace(/[\r\n]/g, '').trim();
       }
 
       let parsedDeviceInfo = deviceInfo;
@@ -75,6 +93,8 @@ class SupportController {
       const report: SupportReport = {
         type,
         text,
+        userName,
+        userEmail,
         deviceInfo: parsedDeviceInfo,
         timestamp: new Date().toISOString(),
       };
@@ -88,7 +108,8 @@ class SupportController {
       const mailOptions: any = {
         from: '"DogDex Support" <support@dogdex.app>',
         to: process.env.SUPPORT_EMAIL || 'admin@example.com',
-        subject: `[DogDex ${(type || 'info').toUpperCase()}] Novo Relato Recebido`,
+        replyTo: userEmail || undefined,
+        subject: `[DogDex ${(type || 'info').toUpperCase()}] Novo Relato de ${userName || 'Usuário'}`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
             <div style="background-color: #000; padding: 20px; text-align: center;">
@@ -103,6 +124,12 @@ class SupportController {
                 <span style="margin-left: auto; color: #6b7280; font-size: 14px;">
                   ${new Date(report.timestamp).toLocaleString('pt-BR')}
                 </span>
+              </div>
+
+              <div style="margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #f3f4f6;">
+                <h2 style="color: #111827; font-size: 18px; margin-bottom: 8px;">Identificação do Usuário:</h2>
+                <p style="margin: 4px 0; color: #374151;"><strong>Nome:</strong> ${userName || 'Não informado'}</p>
+                <p style="margin: 4px 0; color: #374151;"><strong>E-mail:</strong> ${userEmail || 'Não informado'}</p>
               </div>
 
               <h2 style="color: #111827; font-size: 18px; margin-bottom: 8px;">Relato do Usuário:</h2>

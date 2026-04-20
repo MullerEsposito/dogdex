@@ -1,5 +1,6 @@
 {
   "name": "dogdex-monorepo",
+  "version": "0.1.0",
   "private": true,
   "workspaces": [
     "app",
@@ -10,7 +11,16 @@
   ],
   "scripts": {
     "app:start": "npm run start --workspace=app",
+    "app:web": "npm run web --workspace=app",
     "backend:dev": "npm run dev --workspace=backend",
-    "shared:build": "npm run build --workspace=shared"
+    "shared:build": "npm run build --workspace=shared",
+    "test": "npm test --workspaces --if-present",
+    "test:e2e": "concurrently -k -s first \"npm run backend:dev\" \"npm run app:web\" \"wait-on http://localhost:3000 http://localhost:8081 && npx playwright test --project=chromium --workspace=app\""
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "concurrently": "^9.2.1",
+    "react-test-renderer": "^19.2.0",
+    "wait-on": "^9.0.5"
   }
 }

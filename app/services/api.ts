@@ -44,12 +44,20 @@ export const analyzeDog = async (uri: string): Promise<AnalyzeResult> => {
 };
 
 export const sendSupportReport = async (
-  report: { type: 'bug' | 'feature'; text: string; deviceInfo?: any },
+  report: { 
+    type: 'bug' | 'feature'; 
+    text: string; 
+    userName?: string;
+    userEmail?: string;
+    deviceInfo?: any 
+  },
   screenshotUri?: string
-): Promise<{ success: boolean; message: string; previewUrl?: string }> => {
+): Promise<{ success: boolean; message?: string; error?: string; previewUrl?: string }> => {
   const formData = new FormData();
   formData.append('type', report.type);
   formData.append('text', report.text);
+  if (report.userName) formData.append('userName', report.userName);
+  if (report.userEmail) formData.append('userEmail', report.userEmail);
   formData.append('deviceInfo', JSON.stringify(report.deviceInfo));
 
   if (screenshotUri) {

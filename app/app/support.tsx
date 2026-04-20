@@ -23,6 +23,8 @@ import { DeviceInfo } from '@dogdex/shared';
 export default function SupportScreen() {
   const router = useRouter();
   const [type, setType] = useState<'bug' | 'feature'>('bug');
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
   const [text, setText] = useState('');
   const [screenshot, setScreenshot] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -60,7 +62,13 @@ export default function SupportScreen() {
     setLoading(true);
     try {
       const response = await sendSupportReport(
-        { type, text, deviceInfo },
+        { 
+          type, 
+          text, 
+          userName: userName.trim() || undefined,
+          userEmail: userEmail.trim() || undefined,
+          deviceInfo 
+        },
         screenshot || undefined
       );
 
@@ -71,11 +79,12 @@ export default function SupportScreen() {
           [{ text: 'OK', onPress: () => router.back() }]
         );
       } else {
-        throw new Error(response.message);
+        throw new Error(response.message || response.error || 'Erro desconhecido');
       }
     } catch (error: any) {
       console.error(error);
-      Alert.alert('Erro', 'Não foi possível enviar o relato. Tente novamente.');
+      const errorMessage = error.message || 'Não foi possível enviar o relato. Tente novamente.';
+      Alert.alert('Erro', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -117,6 +126,30 @@ export default function SupportScreen() {
                 Sugestão
               </Text>
             </TouchableOpacity>
+          </View>
+
+          <Text style={styles.label}>Informações de Contato (Opcional)</Text>
+          <View style={styles.contactRow}>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                style={styles.smallInput}
+                placeholder="Seu nome"
+                placeholderTextColor="#666"
+                value={userName}
+                onChangeText={setUserName}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                style={styles.smallInput}
+                placeholder="Seu e-mail"
+                placeholderTextColor="#666"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={userEmail}
+                onChangeText={setUserEmail}
+              />
+            </View>
           </View>
 
           <Text style={styles.label}>Descrição</Text>
@@ -255,6 +288,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 120,
     marginBottom: 20,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  smallInput: {
+    backgroundColor: '#2A303A',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#383D47',
+    color: '#FFF',
+    padding: 12,
+    fontSize: 14,
   },
   imagePicker: {
     backgroundColor: '#2A303A',
