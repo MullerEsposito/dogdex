@@ -29,6 +29,7 @@ model DogEntry {
   confidence   Float
   locationAddr String
   imageUri     String   // This will be the Supabase public URL
+  status       String   @default("synced") // e.g., "synced", "pending", "deleted"
   timestamp    DateTime @default(now())
   userId       String
   user         User     @relation(fields: [userId], references: [id])
