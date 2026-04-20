@@ -2,17 +2,19 @@
   "expo": {
     "name": "dogdex",
     "slug": "dogdex",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "newArchEnabled": false,
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "dogdex",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "buildNumber": "2"
     },
     "android": {
       "package": "com.mulleresposito.dogdex",
+      "versionCode": 2,
       "adaptiveIcon": {
         "backgroundColor": "#8DB0C2",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
