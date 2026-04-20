@@ -6,4 +6,6 @@ module.exports = {
   moduleNameMapper: {
     '^@dogdex/shared$': '<rootDir>/../shared/src/index.ts',
   },
+  globalSetup: './src/__tests__/setup.ts',
+  globalTeardown: './src/__tests__/teardown.ts',
 };
