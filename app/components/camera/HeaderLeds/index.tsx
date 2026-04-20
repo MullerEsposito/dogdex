@@ -12,12 +12,12 @@ const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
 type HeaderLedsProps = {
   status: 'idle' | 'loading' | 'success' | 'error';
   isCameraReady: boolean;
-  isSpeechEnabled: boolean;
-  onToggleSpeech: () => void;
+  isAudioEnabled: boolean;
+  onToggleAudio: () => void;
   onStartTour?: () => void;
 };
 
-export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onToggleSpeech, onStartTour }: HeaderLedsProps) {
+export default function HeaderLeds({ status, isCameraReady, isAudioEnabled, onToggleAudio, onStartTour }: HeaderLedsProps) {
   const router = useRouter();
   const appVersion = Constants.expoConfig?.version || '1.0';
   // Animation values for LEDs
@@ -87,10 +87,10 @@ export default function HeaderLeds({ status, isCameraReady, isSpeechEnabled, onT
               <Ionicons name="bug-outline" size={18} color="#FFF" />
             </WalkthroughableTouchableOpacity>
           </CopilotStep>
-          <CopilotStep text="Ative ou desative o assistente de voz." order={3} name="speech">
-            <WalkthroughableTouchableOpacity style={styles.speechToggle} onPress={onToggleSpeech}>
+          <CopilotStep text="Ative ou desative o áudio global do aplicativo (efeitos e voz)." order={3} name="audio">
+            <WalkthroughableTouchableOpacity style={styles.speechToggle} onPress={onToggleAudio}>
               <Ionicons 
-                name={isSpeechEnabled ? "volume-medium" : "volume-mute"} 
+                name={isAudioEnabled ? "volume-medium" : "volume-mute"} 
                 size={18} 
                 color="#FFF" 
               />

@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Audio } from 'expo-av';
+import { useAudio } from '../context/AudioContext';
 
 export function useDogdexSounds() {
+  const { isAudioEnabled } = useAudio();
   const sounds = useRef<{ [key: string]: Audio.Sound }>({});
 
   useEffect(() => {
@@ -19,15 +21,20 @@ export function useDogdexSounds() {
       }
     };
     loadSounds();
-
-    return () => {
-      Object.values(sounds.current).forEach(snd => {
-        if (snd && typeof snd.unloadAsync === 'function') snd.unloadAsync();
-      });
-    };
   }, []);
 
+  // Immediate stop when audio is disabled
+  useEffect(() => {
+    if (!isAudioEnabled) {
+      stopLoadingSound();
+      Object.values(sounds.current).forEach(snd => {
+        try { snd.stopAsync(); } catch(e) {}
+      });
+    }
+  }, [isAudioEnabled]);
+
   const playSound = async (name: string) => {
+    if (!isAudioEnabled) return;
     try {
       const snd = sounds.current[name];
       if (snd) {

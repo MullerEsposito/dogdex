@@ -13,6 +13,7 @@ import { CopilotProvider, useCopilot } from 'react-native-copilot';
 import { useDogdexSounds } from '../hooks/useDogdexSounds';
 import { useDogdexStorage } from '../hooks/useDogdexStorage';
 import { useDogdexSpeech } from '../hooks/useDogdexSpeech';
+import { useAudio } from '../context/AudioContext';
 
 // UI Components
 import HeaderLeds from '../components/camera/HeaderLeds';
@@ -47,7 +48,8 @@ function MainCameraScreen() {
 
   const { playSound, stopLoadingSound } = useDogdexSounds();
   const { saveEntry, hasCompletedTour, completeTour } = useDogdexStorage();
-  const { isSpeechEnabled, toggleSpeech, speakAnalyzeResult, stopSpeech } = useDogdexSpeech();
+  const { speakAnalyzeResult, stopSpeech } = useDogdexSpeech();
+  const { isAudioEnabled, toggleAudio } = useAudio();
   
   const { start, copilotEvents } = useCopilot();
 
@@ -258,8 +260,8 @@ function MainCameraScreen() {
         <HeaderLeds 
           status={status} 
           isCameraReady={isCameraReady} 
-          isSpeechEnabled={isSpeechEnabled} 
-          onToggleSpeech={toggleSpeech}
+          isAudioEnabled={isAudioEnabled} 
+          onToggleAudio={toggleAudio}
           onStartTour={() => start()}
         />
       

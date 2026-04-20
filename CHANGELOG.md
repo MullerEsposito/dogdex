@@ -8,6 +8,7 @@ Track all changes, fixes, and improvements introduced in each version of the Dog
 - **User Identification**: Support for sending Name and Email in error reports and suggestions.
 - **E2E Testing Infrastructure**: Implementation of an automated testing suite with Playwright to ensure the stability of the support flow.
 - **Integration Tests**: JUnit-style backend tests to validate email sending logic and security.
+- **Global Audio Control**: Implemented a "Master Mute" feature that centralizes and persists audio preferences for both voice and sound effects.
 
 ### Fixed
 - **Security (XSS)**: Implemented input sanitization with HTML character escaping to prevent script injection in support emails.

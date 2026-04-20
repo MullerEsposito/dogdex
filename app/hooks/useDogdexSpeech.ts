@@ -1,24 +1,17 @@
 import * as Speech from 'expo-speech';
 import { useState, useEffect } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AnalyzeResult } from '@dogdex/shared';
+import { useAudio } from '../context/AudioContext';
 
-const SPEECH_SETTINGS_KEY = '@dogdex_speech_enabled';
 
 export function useDogdexSpeech() {
-  const [isSpeechEnabled, setIsSpeechEnabled] = useState<boolean>(true);
+  const { isAudioEnabled } = useAudio();
   const [selectedVoice, setSelectedVoice] = useState<string | undefined>(undefined);
 
   // Load settings and find male voice on mount
   useEffect(() => {
     (async () => {
       try {
-        // Load settings
-        const saved = await AsyncStorage.getItem(SPEECH_SETTINGS_KEY);
-        if (saved !== null) {
-          setIsSpeechEnabled(JSON.parse(saved));
-        }
-
         // Find available voices
         const availableVoices = await Speech.getAvailableVoicesAsync();
         
@@ -26,21 +19,18 @@ export function useDogdexSpeech() {
         const ptVoices = availableVoices.filter(v => v.language.startsWith('pt'));
         
         // Tentar encontrar uma voz masculina conhecida
-        // No Android (Google) as masculinas geralmente são 'pt-br-x-ptd-local' ou similares
-        // No iOS, nomes como 'Daniel' ou vozes que contém 'male'
         const maleVoice = ptVoices.find(v => 
           v.name.toLowerCase().includes('male') || 
           v.name.toLowerCase().includes('masculino') ||
-          v.name.toLowerCase().includes('daniel') || // Voz clássica masculina iOS
+          v.name.toLowerCase().includes('daniel') || 
           v.name.toLowerCase().includes('antonio') ||
-          v.identifier.toLowerCase().includes('ptd-local') || // Google PT-BR Masculino
-          v.identifier.toLowerCase().includes('gfs-local')    // Google PT-BR Alternativa
+          v.identifier.toLowerCase().includes('ptd-local') || 
+          v.identifier.toLowerCase().includes('gfs-local')
         );
 
         if (maleVoice) {
           setSelectedVoice(maleVoice.identifier);
         } else if (ptVoices.length > 0) {
-          // Se não achar explicitamente 'male', pega a primeira de PT (fallback)
           setSelectedVoice(ptVoices[0].identifier);
         }
 
@@ -50,18 +40,15 @@ export function useDogdexSpeech() {
     })();
   }, []);
 
-  const toggleSpeech = async () => {
-    const nextValue = !isSpeechEnabled;
-    setIsSpeechEnabled(nextValue);
-    try {
-      await AsyncStorage.setItem(SPEECH_SETTINGS_KEY, JSON.stringify(nextValue));
-    } catch (e) {
-      console.error('Failed to save speech settings', e);
+  // Immediate stop when audio is disabled
+  useEffect(() => {
+    if (!isAudioEnabled) {
+      stopSpeech();
     }
-  };
+  }, [isAudioEnabled]);
 
   const speakAnalyzeResult = (result: AnalyzeResult | null) => {
-    if (!isSpeechEnabled || !result) return;
+    if (!isAudioEnabled || !result) return;
 
     const breed = result.breed || 'Cachorro desconhecido';
     const confidence = Math.round((result.confidence || 0) * 100);
@@ -92,8 +79,7 @@ export function useDogdexSpeech() {
   };
 
   return {
-    isSpeechEnabled,
-    toggleSpeech,
+    isSpeechEnabled: isAudioEnabled,
     speakAnalyzeResult,
     stopSpeech
   };
