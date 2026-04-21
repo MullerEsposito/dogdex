@@ -22,7 +22,8 @@ const STORAGE_KEY = '@dogdex_history';
 const TOUR_COMPLETED_KEY = '@dogdex_tour_completed';
 
 export function useDogdexStorage() {
-  const { token } = useAuth();
+  const { session } = useAuth();
+  const token = session?.access_token;
   const saveEntry = async (
     photoUri: string,
     result: AnalyzeResult,

@@ -25,3 +25,8 @@ test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
+
+# Databases
+*.db
+backend/prisma/*.db
+backend/dev.db

@@ -17,7 +17,12 @@ module.exports = ({ config }) => {
         : config.android.package
     },
     plugins: [
-      "expo-secure-store"
-    ]
+      "expo-secure-store",
+      "expo-web-browser"
+    ],
+    extra: {
+      ...config.extra,
+      apiUrl: isDev ? process.env.EXPO_PUBLIC_API_URL : 'https://dogdex-backend.onrender.com',
+    }
   };
 };

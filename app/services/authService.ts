@@ -1,11 +1,13 @@
-import axios from 'axios';
-
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3000';
+import { Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
+import { supabase } from '../lib/supabase';
 
 export interface User {
   id: string;
   email: string;
   name?: string;
+  avatarUrl?: string;
 }
 
 export interface AuthResponse {
@@ -15,28 +17,108 @@ export interface AuthResponse {
 
 export const authService = {
   async register(email: string, password: string, name?: string): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/register`, {
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      name,
+      options: {
+        data: {
+          full_name: name,
+        },
+      },
     });
-    return response.data;
+
+    if (error) throw error;
+    if (!data.session || !data.user) throw new Error('Falha no registro');
+
+    return {
+      token: data.session.access_token,
+      user: {
+        id: data.user.id,
+        email: data.user.email || '',
+        name: data.user.user_metadata?.full_name,
+        avatarUrl: data.user.user_metadata?.avatar_url,
+      },
+    };
   },
 
   async login(email: string, password: string): Promise<AuthResponse> {
-    const response = await axios.post(`${API_URL}/auth/login`, {
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    return response.data;
+
+    if (error) throw error;
+    if (!data.session || !data.user) throw new Error('Falha no login');
+
+    return {
+      token: data.session.access_token,
+      user: {
+        id: data.user.id,
+        email: data.user.email || '',
+        name: data.user.user_metadata?.full_name,
+        avatarUrl: data.user.user_metadata?.avatar_url,
+      },
+    };
   },
 
-  async getMe(token: string): Promise<User> {
-    const response = await axios.get(`${API_URL}/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
+  async signInWithGoogle() {
+    const redirection = makeRedirectUri({
+      scheme: 'dogdex',
+      path: 'auth'
+    });
+
+    const isWeb = Platform.OS === 'web';
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirection,
+        skipBrowserRedirect: !isWeb,
       },
     });
-    return response.data.user;
+
+    if (error) throw error;
+
+    // Se estiver no Mobile, precisamos gerenciar o navegador e o retorno
+    if (!isWeb && data?.url) {
+      const res = await WebBrowser.openAuthSessionAsync(data.url, redirection);
+
+      if (res.type === 'success' && res.url) {
+        // Supabase returns tokens in the URL fragment (#)
+        const url = res.url.replace('#', '?');
+        const params = new URL(url).searchParams;
+        
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
+
+        if (accessToken && refreshToken) {
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          
+          if (sessionError) throw sessionError;
+        }
+      }
+    }
+  },
+
+  async signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
+  },
+
+  async getMe(): Promise<User> {
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error) throw error;
+    if (!user) throw new Error('Usuário não autenticado');
+
+    return {
+      id: user.id,
+      email: user.email || '',
+      name: user.user_metadata?.full_name,
+      avatarUrl: user.user_metadata?.avatar_url,
+    };
   },
 };

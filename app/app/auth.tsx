@@ -38,7 +38,7 @@ export default function AuthScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
   
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
 
   const handleAuth = async () => {
     if (!email || !password || (!isLogin && !name)) {
@@ -54,15 +54,22 @@ export default function AuthScreen() {
         await signUp(email, password, name);
       }
     } catch (error: any) {
-      const msg = error.response?.data?.error || 'Não foi possível completar a operação.';
+      const msg = error.message || 'Não foi possível completar a operação.';
       Alert.alert('Erro na autenticação', msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSignIn = () => {
-    Alert.alert('Google Sign-In', 'Funcionalidade em desenvolvimento.');
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      Alert.alert('Erro', error.message || 'Falha ao entrar com Google');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -384,9 +391,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#FFF',
     fontSize: 14,
-    ...Platform.select({
-      web: { outlineStyle: 'none' }
-    })
   },
   forgotPassword: {
     alignSelf: 'flex-end',

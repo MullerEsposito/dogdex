@@ -15,6 +15,7 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useDogdexStorage, DogdexEntry } from '../hooks/useDogdexStorage';
+import { useAuth } from '../hooks/useAuth';
 import { useEffect, useState } from 'react';
 
 const { width } = Dimensions.get('window');
@@ -23,6 +24,7 @@ const ITEM_WIDTH = (width - 40) / COLUMN_COUNT;
 
 export default function DogdexScreen() {
   const router = useRouter();
+  const { user, signOut } = useAuth();
   const { getEntries, deleteEntry, exportBackup, importBackup, syncWithCloud } = useDogdexStorage();
   const [entries, setEntries] = useState<DogdexEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -83,6 +85,31 @@ export default function DogdexScreen() {
         [
           { text: 'Cancelar', style: 'cancel' },
           { text: 'Apagar', style: 'destructive', onPress: performDelete }
+        ]
+      );
+    }
+  };
+  
+  const handleLogout = () => {
+    const performLogout = async () => {
+      try {
+        await signOut();
+      } catch (err: any) {
+        Alert.alert('Erro', 'Não foi possível sair.');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (confirm('Deseja realmente sair?')) {
+        performLogout();
+      }
+    } else {
+      Alert.alert(
+        'Sair',
+        'Deseja realmente encerrar sua sessão?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Sair', style: 'destructive', onPress: performLogout }
         ]
       );
     }
@@ -153,7 +180,14 @@ export default function DogdexScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
-        <Text style={styles.title}>DOGDEX INVENTORY</Text>
+        
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>DOGDEX</Text>
+          {user && (
+            <Text style={styles.userEmail} numberOfLines={1}>{user.email}</Text>
+          )}
+        </View>
+
         <View style={styles.headerActions}>
           <TouchableOpacity
             onPress={handleSync}
@@ -277,11 +311,22 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 5,
   },
+  titleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
   title: {
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 2,
+  },
+  userEmail: {
+    color: '#AAA',
+    fontSize: 10,
+    marginTop: 2,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   headerActions: {
     flexDirection: 'row',

@@ -3,51 +3,64 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   // --- HEADER: LENS & LEDS ---
   headerWrapper: {
-    marginTop: 20,
-    marginBottom: 40,
+    marginTop: 10,
+    marginBottom: 28,
     width: '100%',
     paddingHorizontal: 20,
     zIndex: 10,
   },
-  topInfoRow: {
+  topControlRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-    paddingHorizontal: 10,
+    alignItems: 'flex-start',
+    marginBottom: 6,
+    width: '100%',
+    paddingHorizontal: 0,
+    zIndex: 40,
   },
-  versionText: {
-    position: 'absolute',
-    bottom: -30,
-    left: 30,
-    color: 'rgba(255,255,255,0.6)',
-    fontSize: 12,
+  controlGroup: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  topUserBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#8B0000', // Deep red
+    paddingHorizontal: 12,
+    height: 22, // Slightly more than half of 36px
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#A0A0A0', // Silver/light gray
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  topUserText: {
+    color: '#FFF',
+    fontSize: 9,
     fontWeight: 'bold',
+    marginRight: 8,
     letterSpacing: 1,
   },
-  speechToggle: {
-    padding: 6,
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
-  },
-  rightControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  leftControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  miniLogoutButton: {
+    padding: 2,
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(255,255,255,0.3)',
+    paddingLeft: 8,
   },
   supportButton: {
-    padding: 6,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: 'rgba(255,255,255,0.08)',
     borderRadius: 8,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
+    width: 32,
+    height: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   headerTrack: {
     flexDirection: 'row',
