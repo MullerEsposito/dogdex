@@ -1,5 +1,5 @@
 # DogDex 🐾
-![version](https://img.shields.io/badge/version-1.0.0-blue.svg) ![expo](https://img.shields.io/badge/expo-SDK_55-black.svg) ![tensorflow](https://img.shields.io/badge/tensorflow-JS-orange.svg)
+![version](https://img.shields.io/badge/version-0.3.0-blue.svg) ![expo](https://img.shields.io/badge/expo-SDK_55-black.svg) ![tensorflow](https://img.shields.io/badge/tensorflow-JS-orange.svg)
 
 DogDex é um ecossistema inteligente projetado para identificar raças de cachorros com extrema precisão usando o modelo de Deep Learning **EfficientNetB0**. Com um design de hardware nostálgico e tátil inspirado nos clássicos _Scanners_ (Pokedex), o app oferece uma experiência audiovisual rica para capturar e mapear informações sobre o seu pet.
 
@@ -7,7 +7,7 @@ DogDex é um ecossistema inteligente projetado para identificar raças de cachor
 
 https://github.com/user-attachments/assets/ba0bfbfe-5c0b-4ed6-8766-26c82e2cbef6
 
-## ✨ Novidades da V1.1 (Cloud & Sync Edition)
+## ✨ Principais Funcionalidades
 - **Design de Scanner Físico:** Interface com botões táteis, molduras em relevo 3D e um background nativo com gradiente radial.
 - **Efeitos Sonoros Nativos:** O app agora responde às interações graças aos bindings do `expo-av`.
 - **Sincronização em Nuvem (Cloud Sync)**: Sistema robusto de sincronização que mantém seu histórico DogDex seguro no Supabase, com suporte a deduplicação inteligente e "soft delete".
@@ -16,7 +16,6 @@ https://github.com/user-attachments/assets/ba0bfbfe-5c0b-4ed6-8766-26c82e2cbef6
 - **Display LDC Interativo:** Feed da câmera e diagnósticos do Scanner em tempo real.
 - **Histórico DogDex:** Persistência local de capturas com geolocalização automática.
 - **Narração de Voz (TTS):** Funcionalidade opcional de leitura dos resultados.
-- **Backup & Restore**: Exportação e importação de todo o histórico em formato `.json`.
 - **Nova Splash Screen**: Identidade visual premium.
 
 ## 🏗️ Estrutura do Monorepo
@@ -97,7 +96,7 @@ O APK será gerado em: `app/android/app/build/outputs/apk/release/app-release.ap
 
 ## 🔐 Autenticação e Sincronização
 
-O DogDex v1.1 introduz uma camada de persistência em nuvem altamente resiliente:
+O DogDex utiliza uma camada de persistência em nuvem altamente resiliente:
 
 ### 1. Sistema Híbrido de Auth
 - **Supabase Auth**: Gerencia sessões, tokens JWT e provedores OAuth (Google).

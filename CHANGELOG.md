@@ -2,6 +2,23 @@
 
 Track all changes, fixes, and improvements introduced in each version of the DogDex project.
 
+## [0.3.0] - 2026-04-22
+
+### Added
+- **Hybrid Authentication**: Integration of Supabase Auth with a custom PostgreSQL bridge, allowing Social Login (Google) and traditional Email/Password accounts to coexist seamlessly.
+- **Cloud Sync Engine**: Robust synchronization mechanism that maintains local and cloud history consistency with soft-delete (tombstone) support and automatic conflict resolution.
+- **Dynamic Profile Management**: New UI for user profile management, featuring avatar fallbacks and conditional security options (Set Password vs. Reset Password).
+
+### Fixed
+- **Android Focus Jumping**: Resolved a critical UX issue where inputs would lose focus spontaneously on Android due to layout recalculations and heavy UI effects.
+- **Form Stability**: Optimized login and registration forms by replacing unstable `BlurView` components with high-performance containers.
+
+### Removed
+- **Manual Backup & Restore**: Removed the legacy JSON-based export/import functionality as it has been fully superseded by the automatic Cloud Sync system.
+- **Unused Dependencies**: Cleaned up `expo-sharing` and `expo-document-picker` from the project.
+
+---
+
 ## [0.2.1] - 2026-04-20
 
 ### Added

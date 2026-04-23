@@ -1,7 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { documentDirectory, copyAsync, deleteAsync, writeAsStringAsync, readAsStringAsync, EncodingType } from 'expo-file-system/legacy';
-import * as Sharing from 'expo-sharing';
-import * as DocumentPicker from 'expo-document-picker';
+import { documentDirectory, copyAsync, deleteAsync } from 'expo-file-system/legacy';
 import { Alert } from 'react-native';
 import { AnalyzeResult } from '@dogdex/shared';
 import { useAuth } from './useAuth';
@@ -162,110 +160,6 @@ export function useDogdexStorage() {
      }
   };
 
-  const exportBackup = async (): Promise<void> => {
-    try {
-      const entries = await getEntries();
-      if (entries.length === 0) {
-        Alert.alert('Backup Vazio', 'Não há registros para exportar.');
-        return;
-      }
-
-      // Embed each image as Base64 so the backup file is self-contained
-      const entriesWithImages = await Promise.all(
-        entries.map(async (entry) => {
-          try {
-            const base64 = await readAsStringAsync(entry.imageUri, { encoding: EncodingType.Base64 });
-            return { ...entry, imageBase64: base64 };
-          } catch {
-            return { ...entry, imageBase64: null };
-          }
-        })
-      );
-
-      const backup = {
-        version: 1,
-        exportedAt: new Date().toISOString(),
-        count: entries.length,
-        entries: entriesWithImages,
-      };
-
-      const backupPath = `${documentDirectory}dogdex_backup_${Date.now()}.dogdex.json`;
-      await writeAsStringAsync(backupPath, JSON.stringify(backup), { encoding: EncodingType.UTF8 });
-
-      if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(backupPath, {
-          mimeType: 'application/json',
-          dialogTitle: 'Exportar DogDex Backup',
-          UTI: 'public.json',
-        });
-      } else {
-        Alert.alert('Backup salvo', `Arquivo salvo em:\n${backupPath}`);
-      }
-    } catch (error) {
-      console.error('Error exporting backup:', error);
-      Alert.alert('Erro', 'Não foi possível exportar o backup.');
-    }
-  };
-
-  const importBackup = async (): Promise<number> => {
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: ['application/json', '*/*'],
-        copyToCacheDirectory: true,
-      });
-
-      if (result.canceled || !result.assets?.[0]) return 0;
-
-      const fileUri = result.assets[0].uri;
-      const raw = await readAsStringAsync(fileUri, { encoding: EncodingType.UTF8 });
-      const backup = JSON.parse(raw);
-
-      if (!backup.entries || !Array.isArray(backup.entries)) {
-        Alert.alert('Arquivo inválido', 'Este arquivo não é um backup válido do DogDex.');
-        return 0;
-      }
-
-      const existingStr = await AsyncStorage.getItem(STORAGE_KEY);
-      const existing: DogdexEntry[] = existingStr ? JSON.parse(existingStr) : [];
-      const existingIds = new Set(existing.map((e) => e.id));
-
-      const restored: DogdexEntry[] = [];
-      const docDir = documentDirectory ?? '';
-
-      for (const entry of backup.entries) {
-        if (existingIds.has(entry.id)) continue; // skip duplicates
-
-        let finalImageUri = entry.imageUri;
-
-        // Restore image from Base64 if available
-        if (entry.imageBase64 && docDir) {
-          const restoredPath = `${docDir}restored_${entry.id}.jpg`;
-          try {
-            await writeAsStringAsync(restoredPath, entry.imageBase64, { encoding: EncodingType.Base64 });
-            finalImageUri = restoredPath;
-          } catch (imgErr) {
-            console.warn('Could not restore image for entry:', entry.id, imgErr);
-          }
-        }
-
-        const { imageBase64: _, ...cleanEntry } = entry;
-        restored.push({ ...cleanEntry, imageUri: finalImageUri });
-      }
-
-      if (restored.length === 0) {
-        Alert.alert('Nada a importar', 'Todos os registros do backup já existem na sua DogDex.');
-        return 0;
-      }
-
-      const updated = [...restored, ...existing];
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-      return restored.length;
-    } catch (error) {
-      console.error('Error importing backup:', error);
-      Alert.alert('Erro', 'Não foi possível importar o backup. Verifique se o arquivo é válido.');
-      return 0;
-    }
-  };
 
   const syncWithCloud = async (): Promise<{ pulled: number, pushed: number }> => {
     if (!token) return { pulled: 0, pushed: 0 };
@@ -330,8 +224,6 @@ export function useDogdexStorage() {
     hasCompletedTour, 
     completeTour, 
     resetTour, 
-    exportBackup, 
-    importBackup,
     syncWithCloud 
   };
 }

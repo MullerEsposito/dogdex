@@ -26,7 +26,7 @@ const ITEM_WIDTH = (width - 40) / COLUMN_COUNT;
 export default function DogdexScreen() {
   const router = useRouter();
   const { user, signOut } = useAuth();
-  const { getEntries, deleteEntry, exportBackup, importBackup, syncWithCloud } = useDogdexStorage();
+  const { getEntries, deleteEntry, syncWithCloud } = useDogdexStorage();
   const [entries, setEntries] = useState<DogdexEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDog, setSelectedDog] = useState<DogdexEntry | null>(null);
@@ -117,23 +117,6 @@ export default function DogdexScreen() {
     }
   };
 
-  const handleExport = async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
-    await exportBackup();
-    setIsProcessing(false);
-  };
-
-  const handleImport = async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
-    const count = await importBackup();
-    if (count > 0) {
-      Alert.alert('Importação concluída', `${count} registro(s) restaurados com sucesso!`);
-      await loadData();
-    }
-    setIsProcessing(false);
-  };
 
   const renderItem = ({ item }: { item: DogdexEntry }) => (
     <TouchableOpacity 
@@ -205,20 +188,6 @@ export default function DogdexScreen() {
               size={20} 
               color={isSyncing ? "#555" : "#FFF"} 
             />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleImport}
-            style={[styles.actionButton, isProcessing && styles.actionButtonDisabled]}
-            disabled={isProcessing}
-          >
-            <Ionicons name="cloud-download-outline" size={20} color={isProcessing ? '#555' : '#4CAF50'} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleExport}
-            style={[styles.actionButton, isProcessing && styles.actionButtonDisabled]}
-            disabled={isProcessing}
-          >
-            <Ionicons name="cloud-upload-outline" size={20} color={isProcessing ? '#555' : '#4A9EDB'} />
           </TouchableOpacity>
         </View>
       </View>
