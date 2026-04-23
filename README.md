@@ -35,16 +35,20 @@ Para começar os pacotes básicos, incluindo todas as subpastas `Workspaces`:
 npm install
 ```
 
-### 2. O Roteador (`app/.env`)
-Conecte o App à nave-mãe.
-- **Produção (Cloud):**
-  ```env
-  EXPO_PUBLIC_API_URL=https://dogdex-backend.onrender.com
-  ```
-- **Local (Seu PC):**
-  ```env
-  EXPO_PUBLIC_API_URL=http://<SEU_IP_LOCAL>:3000
-  ```
+### 2. Gestão de Ambiente (Menu Interativo) 🛠️
+Esqueça a edição manual de arquivos `.env`. O DogDex agora possui um menu interativo para configurar as URLs da API automaticamente:
+
+```bash
+cd app
+npm run dev
+```
+
+Este comando abrirá um menu onde você pode escolher o destino da "nave-mãe":
+- **Localhost (Automatic IP)**: Detecta o IP da sua máquina e configura o App para o seu backend local.
+- **Production (Render)**: Aponta para a API oficial em produção.
+- **Development (Dev-Server)**: Aponta para o ambiente de staging na nuvem.
+
+O script gera um arquivo `.env.local` persistente que o Expo utiliza para injetar a variável `EXPO_PUBLIC_API_URL` sem risco de vazar segredos para o Git.
 
 ### 3. Rodando o Servidor Analítico
 No diretório inicial:

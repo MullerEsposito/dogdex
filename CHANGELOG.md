@@ -2,20 +2,30 @@
 
 Track all changes, fixes, and improvements introduced in each version of the DogDex project.
 
-## [0.3.0] - 2026-04-22
+## [0.3.0] - 2026-04-23
 
 ### Added
-- **Hybrid Authentication**: Integration of Supabase Auth with a custom PostgreSQL bridge, allowing Social Login (Google) and traditional Email/Password accounts to coexist seamlessly.
-- **Cloud Sync Engine**: Robust synchronization mechanism that maintains local and cloud history consistency with soft-delete (tombstone) support and automatic conflict resolution.
-- **Dynamic Profile Management**: New UI for user profile management, featuring avatar fallbacks and conditional security options (Set Password vs. Reset Password).
+- **Password Recovery Flow**: Implemented a server-side "Redirect Bridge" for mobile deep links (`dogdex://`), bypassing browser security blocks.
+- **Supabase Admin Sync**: Backend integration with Supabase `service_role` to synchronize password updates.
+- **Hybrid Authentication**: Integration of Supabase Auth with a custom PostgreSQL bridge, allowing Social Login and traditional accounts to coexist.
+- **Cloud Sync Engine**: Robust synchronization mechanism that maintains local and cloud history consistency with soft-delete (tombstone) support.
+- **Dynamic Profile Management**: New UI for user profile management, featuring avatar fallbacks and conditional security options.
+
+### Security
+- **Token Hardening**: Reduced password reset token expiration to 15 minutes and implemented login invalidation.
+- **Admin Isolation**: Moved sensitive auth operations to the backend to protect credentials.
 
 ### Fixed
-- **Android Focus Jumping**: Resolved a critical UX issue where inputs would lose focus spontaneously on Android due to layout recalculations and heavy UI effects.
-- **Form Stability**: Optimized login and registration forms by replacing unstable `BlurView` components with high-performance containers.
+- **Environment Management**: Refactored `dev-menu.js` to automatically generate `.env.local`, ensuring the API URL correctly propagates.
+- **Android Focus Jumping**: Resolved critical UX issue where inputs would lose focus spontaneously on Android.
+- **Form Stability**: Optimized login and registration forms by replacing unstable components.
+
+### Improved
+- **UX & Anti-Spam**: Polished `ProfileModal` loading with ActivityIndicator and added click-prevention to all auth buttons.
 
 ### Removed
-- **Manual Backup & Restore**: Removed the legacy JSON-based export/import functionality as it has been fully superseded by the automatic Cloud Sync system.
-- **Unused Dependencies**: Cleaned up `expo-sharing` and `expo-document-picker` from the project.
+- **Manual Backup & Restore**: Removed the legacy JSON-based export/import functionality.
+- **Unused Dependencies**: Cleaned up `expo-sharing` and `expo-document-picker`.
 
 ---
 
