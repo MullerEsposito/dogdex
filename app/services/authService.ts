@@ -130,7 +130,7 @@ export const authService = {
   },
 
   async resetPassword(password: string, token: string) {
-    const response = await axios.post(`${BASE_URL}/auth/reset-password`, { password, token });
+    const response = await axios.post(`${BASE_URL}/auth/reset-password`, { newPassword: password, token });
     return response.data;
   },
 

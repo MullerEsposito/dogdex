@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../hooks/useAuth';
+import { authService } from '@/services/authService';
 
 const { width, height } = Dimensions.get('window');
 
@@ -219,7 +220,24 @@ export default function AuthScreen() {
                 </View>
 
                 {isLogin && (
-                    <TouchableOpacity style={styles.forgotPassword}>
+                    <TouchableOpacity 
+                        style={styles.forgotPassword}
+                        onPress={async () => {
+                            if (!email) {
+                                Alert.alert('Atenção', 'Digite seu e-mail no campo acima para recuperar a senha.');
+                                return;
+                            }
+                            try {
+                                setLoading(true);
+                                await authService.forgotPassword(email);
+                                Alert.alert('Sucesso', 'E-mail de recuperação enviado! Verifique sua caixa de entrada.');
+                            } catch (error) {
+                                Alert.alert('Erro', 'Não foi possível enviar o e-mail. Verifique o endereço digitado.');
+                            } finally {
+                                setLoading(false);
+                            }
+                        }}
+                    >
                     <Text style={styles.forgotText}>Forgot Password?</Text>
                     </TouchableOpacity>
                 )}

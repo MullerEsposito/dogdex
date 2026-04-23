@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { getPrisma } from '../services/prisma';
 import { emailService } from '../services/emailService';
+import { supabase } from '../services/supabase';
 import { getResetPasswordHTML } from '../templates/resetPasswordTemplate';
 
 const prisma = getPrisma();
@@ -162,15 +163,28 @@ export const resetPassword = async (req: Request, res: Response) => {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    // 1. Atualiza no nosso banco de dados (Prisma)
     await prisma.user.update({
       where: { id: user.id },
       data: {
         password: hashedPassword,
         resetToken: null,
         resetTokenExpires: null,
-        // Ao definir uma senha, permitimos que ele logue por e-mail normalmente
       }
     });
+
+    // 2. Sincroniza com o Supabase Auth (Obrigatório para o login funcionar)
+    try {
+      const { error: supabaseError } = await supabase.auth.admin.updateUserById(user.id, {
+        password: newPassword
+      });
+
+      if (supabaseError) {
+        console.error('Erro ao sincronizar com Supabase Auth:', supabaseError);
+      }
+    } catch (e) {
+      console.error('Falha crítica na comunicação com Supabase:', e);
+    }
 
     res.status(200).json({ message: 'Senha atualizada com sucesso!' });
   } catch (error) {
