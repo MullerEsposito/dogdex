@@ -1,18 +1,15 @@
-import "dotenv/config";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "@prisma/config";
 
-type Env = {
-  DATABASE_URL: string;
-  DIRECT_URL: string;
-};
+const isTest = process.env.NODE_ENV === "test" || 
+               !!process.env.JEST_WORKER_ID;
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: isTest ? "prisma/test.prisma" : "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: env<Env>("DATABASE_URL"),
-    directUrl: env<Env>("DIRECT_URL"),
+    url: process.env.DATABASE_URL || "file:./prisma/dev.db",
+    ...(isTest ? {} : (process.env.DIRECT_URL ? { directUrl: process.env.DIRECT_URL } : {}))
   },
 });

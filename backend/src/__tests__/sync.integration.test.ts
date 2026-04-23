@@ -5,13 +5,15 @@ import * as path from 'path';
 
 const BACKEND_ROOT = path.resolve(__dirname, '../../');
 const TEST_DB_PATH = path.resolve(BACKEND_ROOT, 'prisma/test.db');
-const prisma = createPrismaClient(`file:${TEST_DB_PATH}`);
+let prisma: any;
 
 describe('Cloud Synchronization Integration Tests', () => {
   let user1Token: string;
   let user2Token: string;
 
   beforeAll(async () => {
+    prisma = createPrismaClient(`file:${TEST_DB_PATH}`);
+
     // Setup 2 users for isolation testing
     const res1 = await request(app).post('/auth/register').send({
       email: 'sync1@test.com',

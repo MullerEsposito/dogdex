@@ -5,7 +5,11 @@ import * as path from 'path';
 
 const BACKEND_ROOT = path.resolve(__dirname, '../../');
 const TEST_DB_PATH = path.resolve(BACKEND_ROOT, 'prisma/test.db');
-const prisma = createPrismaClient(`file:${TEST_DB_PATH}`);
+let prisma: any;
+
+beforeAll(async () => {
+  prisma = createPrismaClient(`file:${TEST_DB_PATH}`);
+});
 
 // Clean up before each test to ensure isolation
 beforeEach(async () => {

@@ -51,7 +51,7 @@ class EmailService {
     });
     
     console.log('Message sent: %s', info.messageId);
-    const previewUrl = nodemailer.getTestMessageUrl(info);
+    const previewUrl = nodemailer.getTestMessageUrl(info as any);
     if (previewUrl) {
       console.log('Preview URL: %s', previewUrl);
     }
