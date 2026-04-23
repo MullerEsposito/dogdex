@@ -15,7 +15,8 @@ export interface DogdexEntry {
   locationAddr: string;
   imageUri: string;
   dogData: AnalyzeResult['dogData'];
-  status?: 'local' | 'synced';
+  status?: 'local' | 'synced' | 'deleted';
+  localId?: string;
 }
 
 const STORAGE_KEY = '@dogdex_history';
@@ -91,7 +92,9 @@ export function useDogdexStorage() {
   const getEntries = async (): Promise<DogdexEntry[]> => {
     try {
       const existingStr = await AsyncStorage.getItem(STORAGE_KEY);
-      return existingStr ? JSON.parse(existingStr) : [];
+      const entries: DogdexEntry[] = existingStr ? JSON.parse(existingStr) : [];
+      // Oculta itens marcados como apagados da interface
+      return entries.filter(e => e.status !== 'deleted');
     } catch (error) {
       console.error('Error fetching Dogdex entries:', error);
       return [];
@@ -106,7 +109,7 @@ export function useDogdexStorage() {
       const entryToDelete = existing.find(e => e.id === id);
       if (!entryToDelete) return false;
 
-      // Clean up physical file if on native
+      // Limpeza final do arquivo físico se estiver no nativo
       if (documentDirectory && entryToDelete.imageUri.startsWith(documentDirectory)) {
         try {
           await deleteAsync(entryToDelete.imageUri, { idempotent: true });
@@ -115,7 +118,17 @@ export function useDogdexStorage() {
         }
       }
 
-      const updated = existing.filter(e => e.id !== id);
+      let updated = [];
+      if (entryToDelete.status === 'synced') {
+        // Marca como apagado para sincronizar, mas remove da visualização
+        updated = existing.map(e => e.id === id ? { ...e, status: 'deleted' } : e);
+        console.log('🗑️ [STORAGE] Item marcado para exclusão via sincronização');
+      } else {
+        // Remove itens locais imediatamente
+        updated = existing.filter(e => e.id !== id);
+        console.log('🗑️ [STORAGE] Item local removido diretamente');
+      }
+
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
       return true;
     } catch (error) {
@@ -258,20 +271,20 @@ export function useDogdexStorage() {
     if (!token) return { pulled: 0, pushed: 0 };
     
     try {
-      // 1. Pull from cloud
-      const cloudEntries = await syncService.pull(token);
-      
-      // 2. Get local entries
+      // 1. Pega entradas locais
       const localStr = await AsyncStorage.getItem(STORAGE_KEY);
       const local: DogdexEntry[] = localStr ? JSON.parse(localStr) : [];
       
-      // 3. Find pending locals to push
+      // 2. Envia mudanças locais primeiro (importante para exclusões)
       const pending = local.filter(e => e.status !== 'synced');
       if (pending.length > 0) {
         await syncService.push(token, pending);
       }
 
-      // 4. Merge entries (prefer cloud data as source of truth for synced fields)
+      // 3. Agora baixa o estado atualizado da nuvem
+      const cloudEntries = await syncService.pull(token);
+      
+      // 4. Mescla as entradas
       const mergedMap = new Map<string, DogdexEntry>();
       
       // Add local first
@@ -280,9 +293,13 @@ export function useDogdexStorage() {
       // Add cloud entries (overwriting local if same ID, marking as synced)
       cloudEntries.forEach(ce => {
         const existing = mergedMap.get(ce.id);
+        
+        // Se já existe localmente e está marcado como 'deleted', não sobrescrevemos
+        if (existing?.status === 'deleted') return;
+
         mergedMap.set(ce.id, {
           ...ce,
-          // Keep local image URI if it exists locally, otherwise it's a "cloud-only" entry until we download images (future phase)
+          // Em pull do syncService, ce.id já foi mapeado do localId do servidor
           imageUri: existing?.imageUri || ce.imageUri, 
           status: 'synced'
         });
@@ -292,7 +309,9 @@ export function useDogdexStorage() {
         (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      // Limpeza final: remove entradas locais que já foram sincronizadas como 'deleted'
+      const finalSyncResults = merged.filter(e => e.status !== 'deleted');
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(finalSyncResults));
       
       return { 
         pulled: cloudEntries.length, 

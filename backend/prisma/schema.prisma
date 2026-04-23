@@ -3,23 +3,25 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
-// We use sqlite for TDD and local development initially. 
-// For production (Render/Postgres), change provider to "postgresql".
+// We use Supabase Postgres for production and development.
 datasource db {
-  provider = "sqlite"
+  provider  = "postgresql"
 }
 
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
-  password  String     // Hashed
-  name      String?
-  entries   DogEntry[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id                 String     @id @default(uuid())
+  email              String     @unique
+  password           String?    // Hashed (Opcional para login social)
+  name               String?
+  socialProvider     String?    // ex: 'google', 'apple'
+  isSocial           Boolean    @default(false)
+  resetToken         String?    @unique
+  resetTokenExpires  DateTime?
+  entries            DogEntry[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 }
 
 model DogEntry {

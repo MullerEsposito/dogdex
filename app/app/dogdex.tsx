@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDogdexStorage, DogdexEntry } from '../hooks/useDogdexStorage';
 import { useAuth } from '../hooks/useAuth';
 import { useEffect, useState } from 'react';
+import ProfileModal from '../components/ProfileModal';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 2;
@@ -31,6 +32,7 @@ export default function DogdexScreen() {
   const [selectedDog, setSelectedDog] = useState<DogdexEntry | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isProfileVisible, setIsProfileVisible] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -184,7 +186,11 @@ export default function DogdexScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>DOGDEX</Text>
           {user && (
-            <Text style={styles.userEmail} numberOfLines={1}>{user.email}</Text>
+            <TouchableOpacity onPress={() => setIsProfileVisible(true)} activeOpacity={0.7}>
+              <Text style={styles.userEmail} numberOfLines={1}>
+                {user.email} <Ionicons name="chevron-down" size={10} color="#666" />
+              </Text>
+            </TouchableOpacity>
           )}
         </View>
 
@@ -290,6 +296,11 @@ export default function DogdexScreen() {
           </View>
         </View>
       </Modal>
+
+      <ProfileModal 
+        isVisible={isProfileVisible} 
+        onClose={() => setIsProfileVisible(false)} 
+      />
     </SafeAreaView>
   );
 }

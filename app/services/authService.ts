@@ -1,7 +1,9 @@
 import { Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
+import axios from 'axios';
 import { supabase } from '../lib/supabase';
+import { BASE_URL } from './api';
 
 export interface User {
   id: string;
@@ -120,5 +122,47 @@ export const authService = {
       name: user.user_metadata?.full_name,
       avatarUrl: user.user_metadata?.avatar_url,
     };
+  },
+
+  async forgotPassword(email: string) {
+    const response = await axios.post(`${BASE_URL}/auth/forgot-password`, { email });
+    return response.data;
+  },
+
+  async resetPassword(password: string, token: string) {
+    const response = await axios.post(`${BASE_URL}/auth/reset-password`, { password, token });
+    return response.data;
+  },
+
+  async setPassword(password: string, accessToken: string) {
+    // 1. Atualiza no Supabase Auth (Obrigatório para o login por e-mail funcionar)
+    const { error: authError } = await supabase.auth.updateUser({
+      password: password
+    });
+
+    if (authError) throw authError;
+
+    // 2. Notifica nosso backend para atualizar metadados na tabela public.User
+    try {
+      await axios.post(`${BASE_URL}/auth/set-password`, { password }, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    } catch (e) {
+      console.warn('Erro ao sincronizar senha com backend, mas senha foi alterada no Supabase:', e);
+      // Não lançamos erro aqui pois a senha principal no Supabase já foi alterada com sucesso
+    }
+    
+    return { success: true };
+  },
+
+  async getMeBackend(accessToken: string) {
+    const response = await axios.get(`${BASE_URL}/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return response.data;
   },
 };

@@ -29,6 +29,13 @@ const COLORS = {
   textSecondary: '#A0A0B0',
 };
 
+const GlassContainer = ({ children, style, intensity, tint }: any) => {
+  if (Platform.OS === 'android') {
+    return <View style={[style, { backgroundColor: 'rgba(20, 20, 25, 0.95)' }]}>{children}</View>;
+  }
+  return <BlurView intensity={intensity} tint={tint} style={style}>{children}</BlurView>;
+};
+
 export default function AuthScreen() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -37,6 +44,10 @@ export default function AuthScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  
+  const nameRef = React.useRef<TextInput>(null);
+  const emailRef = React.useRef<TextInput>(null);
+  const passwordRef = React.useRef<TextInput>(null);
   
   const { signIn, signUp, signInWithGoogle } = useAuth();
 
@@ -78,7 +89,15 @@ export default function AuthScreen() {
       <View style={styles.glowPurple} />
       <View style={styles.glowOrange} />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          bounces={false}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* Top Section - Hero Dog Image with Fade Out */}
         <View style={styles.heroSection}>
           <Image 
@@ -112,7 +131,7 @@ export default function AuthScreen() {
           
           {/* Frosted Glass Card with Fixes */}
           <View style={styles.glassCardWrapper}>
-            <BlurView intensity={70} tint="dark" style={styles.glassCard}>
+            <GlassContainer intensity={70} tint="dark" style={styles.glassCard}>
                 <Text style={styles.cardTitle}>
                 {isLogin ? 'Welcome to DogDex' : 'Create Account'}
                 </Text>
@@ -130,6 +149,7 @@ export default function AuthScreen() {
                         style={styles.inputIcon} 
                     />
                     <TextInput
+                        ref={nameRef}
                         style={styles.input}
                         placeholder="Full Name"
                         placeholderTextColor={COLORS.textSecondary}
@@ -137,6 +157,9 @@ export default function AuthScreen() {
                         onChangeText={setName}
                         onFocus={() => setFocusedField('name')}
                         onBlur={() => setFocusedField(null)}
+                        returnKeyType="next"
+                        onSubmitEditing={() => emailRef.current?.focus()}
+                        blurOnSubmit={false}
                     />
                     </View>
                 )}
@@ -149,6 +172,7 @@ export default function AuthScreen() {
                         style={styles.inputIcon} 
                     />
                     <TextInput
+                        ref={emailRef}
                         style={styles.input}
                         placeholder="Email Address"
                         placeholderTextColor={COLORS.textSecondary}
@@ -156,8 +180,12 @@ export default function AuthScreen() {
                         onChangeText={setEmail}
                         keyboardType="email-address"
                         autoCapitalize="none"
+                        autoCorrect={false}
                         onFocus={() => setFocusedField('email')}
                         onBlur={() => setFocusedField(null)}
+                        returnKeyType="next"
+                        onSubmitEditing={() => passwordRef.current?.focus()}
+                        blurOnSubmit={false}
                     />
                 </View>
 
@@ -169,6 +197,7 @@ export default function AuthScreen() {
                         style={styles.inputIcon} 
                     />
                     <TextInput
+                        ref={passwordRef}
                         style={styles.input}
                         placeholder="Password"
                         placeholderTextColor={COLORS.textSecondary}
@@ -177,6 +206,8 @@ export default function AuthScreen() {
                         secureTextEntry={!showPassword}
                         onFocus={() => setFocusedField('password')}
                         onBlur={() => setFocusedField(null)}
+                        returnKeyType="done"
+                        onSubmitEditing={handleAuth}
                     />
                     <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                     <Ionicons 
@@ -204,7 +235,7 @@ export default function AuthScreen() {
                     </LinearGradient>
                 </TouchableOpacity>
                 </View>
-            </BlurView>
+            </GlassContainer>
           </View>
 
           {/* Social and Switch Section */}
@@ -236,6 +267,7 @@ export default function AuthScreen() {
           </View>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -378,11 +410,7 @@ const styles = StyleSheet.create({
   },
   inputContainerActive: {
     borderColor: COLORS.accent,
-    backgroundColor: 'rgba(0,0,0,0.4)',
-    shadowColor: COLORS.accent,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.2,
-    shadowRadius: 10,
+    backgroundColor: 'rgba(255, 137, 6, 0.05)',
   },
   inputIcon: {
     marginRight: 12,

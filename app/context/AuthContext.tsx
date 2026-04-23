@@ -28,8 +28,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser({
           id: session.user.id,
           email: session.user.email || '',
-          name: session.user.user_metadata?.full_name,
-          avatarUrl: session.user.user_metadata?.avatar_url,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+          avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
         });
       }
       setLoading(false);
@@ -42,8 +42,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser({
           id: session.user.id,
           email: session.user.email || '',
-          name: session.user.user_metadata?.full_name,
-          avatarUrl: session.user.user_metadata?.avatar_url,
+          name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
+          avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
         });
       } else {
         setUser(null);

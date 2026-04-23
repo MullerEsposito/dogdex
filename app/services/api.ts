@@ -22,7 +22,8 @@ const getBaseUrl = () => {
   return 'http://localhost:3000';
 };
 
-const BASE_URL = getBaseUrl();
+export const BASE_URL = getBaseUrl();
+console.log(`🚀 [DOGDEX] API BASE_URL DEFINIDA COMO: ${BASE_URL}`);
 console.log(`[API] Base URL configurada: ${BASE_URL} 🌐`);
 
 export const analyzeDog = async (uri: string): Promise<AnalyzeResult> => {

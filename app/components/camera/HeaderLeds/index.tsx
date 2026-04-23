@@ -16,9 +16,10 @@ type HeaderLedsProps = {
   isAudioEnabled: boolean;
   onToggleAudio: () => void;
   onStartTour?: () => void;
+  onOpenProfile?: () => void;
 };
 
-export default function HeaderLeds({ status, isCameraReady, isAudioEnabled, onToggleAudio, onStartTour }: HeaderLedsProps) {
+export default function HeaderLeds({ status, isCameraReady, isAudioEnabled, onToggleAudio, onStartTour, onOpenProfile }: HeaderLedsProps) {
   const router = useRouter();
   const { user, signOut } = useAuth();
   const appVersion = Constants.expoConfig?.version || '1.0';
@@ -109,9 +110,11 @@ export default function HeaderLeds({ status, isCameraReady, isAudioEnabled, onTo
 
         {user && (
           <View style={styles.topUserBadge}>
-            <Text style={styles.topUserText}>
-              {operatorId?.toUpperCase()}
-            </Text>
+            <TouchableOpacity onPress={onOpenProfile} activeOpacity={0.7}>
+              <Text style={styles.topUserText}>
+                {operatorId?.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={handleLogout} style={styles.miniLogoutButton}>
               <Ionicons name="log-out-outline" size={14} color="#FA3045" />
             </TouchableOpacity>

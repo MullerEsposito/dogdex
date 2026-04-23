@@ -7,14 +7,17 @@ DogDex é um ecossistema inteligente projetado para identificar raças de cachor
 
 https://github.com/user-attachments/assets/ba0bfbfe-5c0b-4ed6-8766-26c82e2cbef6
 
-## ✨ Novidades da V1.0 (Pokedex UI Edition)
+## ✨ Novidades da V1.1 (Cloud & Sync Edition)
 - **Design de Scanner Físico:** Interface com botões táteis, molduras em relevo 3D e um background nativo com gradiente radial.
-- **Efeitos Sonoros Nativos:** O app agora responde às interações graças aos bindings do `expo-av`, reproduzindo notificações sonoras para os cenários de _Boot, Target Found e Scanning Fail_.
-- **Display LDC Interativo:** Feed da câmera e diagnósticos do Scanner expostos numa representação estética retrô.
-- **Histórico DogDex:** Persistência local de capturas com geolocalização automática (Lat/Long) e armazenamento permanente de imagens.
-- **Narração de Voz (TTS):** Funcionalidade opcional de leitura dos resultados para maior acessibilidade, com narração natural em português.
-- **Backup & Restore**: Exportação e importação completa de todo o seu histórico (dados + fotos em Base64) em formato `.dogdex.json`, permitindo trocar de aparelho sem perder suas capturas.
-- **Nova Splash Screen**: Uma identidade visual premium e focada no momento que você clica no APP.
+- **Efeitos Sonoros Nativos:** O app agora responde às interações graças aos bindings do `expo-av`.
+- **Sincronização em Nuvem (Cloud Sync)**: Sistema robusto de sincronização que mantém seu histórico DogDex seguro no Supabase, com suporte a deduplicação inteligente e "soft delete".
+- **Autenticação Híbrida**: Suporte a login social (Google) e login tradicional por e-mail/senha.
+- **Perfil de Usuário**: Gerenciamento de avatar (via `expo-image`) e dados pessoais.
+- **Display LDC Interativo:** Feed da câmera e diagnósticos do Scanner em tempo real.
+- **Histórico DogDex:** Persistência local de capturas com geolocalização automática.
+- **Narração de Voz (TTS):** Funcionalidade opcional de leitura dos resultados.
+- **Backup & Restore**: Exportação e importação de todo o histórico em formato `.json`.
+- **Nova Splash Screen**: Identidade visual premium.
 
 ## 🏗️ Estrutura do Monorepo
 
@@ -92,7 +95,22 @@ O APK será gerado em: `app/android/app/build/outputs/apk/release/app-release.ap
 
 ---
 
-## ☁️ Arquitetura e Nuvem (Render)
+## 🔐 Autenticação e Sincronização
+
+O DogDex v1.1 introduz uma camada de persistência em nuvem altamente resiliente:
+
+### 1. Sistema Híbrido de Auth
+- **Supabase Auth**: Gerencia sessões, tokens JWT e provedores OAuth (Google).
+- **PostgreSQL Profile**: Uma tabela `public.User` sincronizada no backend para gerenciar senhas customizadas (via `bcrypt`) e metadados estendidos, permitindo login tradicional mesmo em contas criadas via Social.
+
+### 2. Motor de Sincronização (Sync Engine)
+- **Persistência Local**: O app utiliza um hook customizado `useDogdexStorage` que gerencia o estado local de forma ultra-rápida.
+- **Sync Automático**: Ao detectar conexão, o app sincroniza itens locais com o Supabase usando uma estratégia de "Update or Insert" baseada em `localId`.
+- **Soft Delete**: Registros deletados localmente recebem um status `deleted` que é propagado para a nuvem, garantindo que itens excluídos não "ressuscitem" em outros dispositivos.
+
+---
+
+## ☁️ Arquitetura e Nuvem (Render & Supabase)
 
 A estratégia do Backend foi forjada para não precisar de complexos scripts de _Docker_. Com suporte aos _Environment Variables_ corretos no painel da **Render**, siga o comportamento do _Build Command_:
 ```bash

@@ -14,12 +14,12 @@ export const push = async (req: Request, res: Response) => {
 
     // Prepare data with userId
     const dataToInsert = entries.map((entry: any) => ({
-      localId: entry.localId,
+      localId: entry.id || entry.localId, // Usa o id do frontend como localId
       breedName: entry.breedName,
       confidence: entry.confidence,
       locationAddr: entry.locationAddr,
       imageUri: entry.imageUri,
-      status: 'synced',
+      status: entry.status || 'synced',
       timestamp: entry.timestamp ? new Date(entry.timestamp) : new Date(),
       userId: userId,
     }));
@@ -31,7 +31,7 @@ export const push = async (req: Request, res: Response) => {
     
     let count = 0;
     for (const entry of dataToInsert) {
-       // Check if localId already exists for this user to avoid duplication during sync
+       // Verifica se localId já existe para este usuário para evitar duplicidade
        const existing = await prisma.dogEntry.findFirst({
          where: { localId: entry.localId, userId: userId }
        });
@@ -39,6 +39,15 @@ export const push = async (req: Request, res: Response) => {
        if (!existing) {
          await prisma.dogEntry.create({ data: entry });
          count++;
+       } else {
+         // ATUALIZA o registro existente (especialmente o status)
+         await prisma.dogEntry.update({
+           where: { id: existing.id },
+           data: { 
+             status: entry.status,
+             // atualiza outros campos se necessário
+           }
+         });
        }
     }
 
@@ -54,7 +63,10 @@ export const pull = async (req: Request, res: Response) => {
     const userId = (req as any).userId;
 
     const entries = await prisma.dogEntry.findMany({
-      where: { userId: userId },
+      where: { 
+        userId: userId,
+        status: { not: 'deleted' } // Não retorna itens apagados
+      },
       orderBy: { timestamp: 'desc' }
     });
 
