@@ -97,6 +97,14 @@ export const login = async (req: Request, res: Response) => {
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
 
+    // Invalida tokens de reset pendentes ao logar com sucesso
+    if (user.resetToken) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { resetToken: null, resetTokenExpires: null }
+      });
+    }
+
     const { password: _, ...userWithoutPassword } = user;
     res.status(200).json({
       token,
@@ -123,7 +131,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     }
 
     const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 3600000); // 1 hora
+    const expires = new Date(Date.now() + 900000); // 15 minutos (900.000ms)
 
     await prisma.user.update({
       where: { id: user.id },
