@@ -59,9 +59,9 @@ class EmailService {
   }
 
   async sendPasswordResetEmail(email: string, token: string) {
-    // Em produção, isso seria um link para o seu site/app
-    // Por enquanto, enviamos apenas o código/link simbólico
-    const resetLink = `dogdex://reset-password?token=${token}`;
+    // O link agora aponta para o Backend (HTTP), que servirá a página de redirecionamento para o App
+    const baseUrl = process.env.API_URL || 'http://localhost:3000';
+    const resetLink = `${baseUrl}/auth/reset-password-page?token=${token}`;
     
     await this.sendMail({
       to: email,

@@ -5,20 +5,25 @@ import { AnalyzeResult } from '@dogdex/shared';
 const getBaseUrl = () => {
   // 1. Tenta o valor injetado pelo app.config.js (definido no build)
   const configUrl = Constants.expoConfig?.extra?.apiUrl;
-  if (configUrl) return configUrl;
-
-  // 2. Tenta a variável de ambiente direta (para o script interativo)
-  const publicUrl = process.env.EXPO_PUBLIC_API_URL;
-  if (publicUrl) return publicUrl;
-
-  if (Platform.OS === 'web') return 'http://localhost:3000';
   
-  const debuggerHost = Constants.expoConfig?.hostUri;
-  if (debuggerHost) {
-    const ip = debuggerHost.split(':')[0];
-    return `http://${ip}:3000`;
+  // 2. Tenta a variável de ambiente direta (vinda do cross-env ou .env)
+  const publicUrl = process.env.EXPO_PUBLIC_API_URL;
+  
+  console.log(`[DEBUG] configUrl: ${configUrl}, publicUrl: ${publicUrl}, OS: ${Platform.OS}`);
+
+  const url = configUrl || publicUrl;
+  if (url) return url;
+
+  // 3. Se não houver URL definida, tenta auto-detectar para Android
+  if (Platform.OS !== 'web') {
+    const debuggerHost = Constants.expoConfig?.hostUri;
+    if (debuggerHost) {
+      const ip = debuggerHost.split(':')[0];
+      return `http://${ip}:3000`;
+    }
   }
   
+  // 4. Fallback final para qualquer plataforma
   return 'http://localhost:3000';
 };
 

@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { getPrisma } from '../services/prisma';
 import { emailService } from '../services/emailService';
+import { getResetPasswordHTML } from '../templates/resetPasswordTemplate';
 
 const prisma = getPrisma();
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
@@ -177,6 +178,17 @@ export const resetPassword = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Error resetting password' });
   }
 };
+
+export const resetPasswordPage = async (req: Request, res: Response) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return res.status(400).send('<h1>Token Inválido</h1>');
+  }
+
+  res.send(getResetPasswordHTML(token as string));
+};
+
 
 export const setPassword = async (req: Request, res: Response) => {
   try {
