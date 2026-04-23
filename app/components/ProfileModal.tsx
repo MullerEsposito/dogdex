@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Platform, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Platform, Dimensions, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,6 +7,10 @@ import { useAuth } from '../hooks/useAuth';
 import { authService } from '../services/authService';
 
 const { height } = Dimensions.get('window');
+
+const COLORS = {
+  accent: '#FF8906',
+};
 
 interface ProfileModalProps {
   isVisible: boolean;
@@ -157,8 +161,8 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
               <Ionicons name={showPasswordForm ? "chevron-down" : "chevron-forward"} size={18} color="#444" />
             </TouchableOpacity>
           ) : (
-            <View style={{ padding: 20, alignItems: 'center' }}>
-              <Text style={{ color: '#666', fontSize: 12 }}>Carregando opções de segurança...</Text>
+            <View style={{ height: 80, justifyContent: 'center', alignItems: 'center' }}>
+              <ActivityIndicator size="small" color={COLORS.accent} />
             </View>
           )}
 

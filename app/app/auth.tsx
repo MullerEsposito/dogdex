@@ -221,7 +221,8 @@ export default function AuthScreen() {
 
                 {isLogin && (
                     <TouchableOpacity 
-                        style={styles.forgotPassword}
+                        style={[styles.forgotPassword, loading && { opacity: 0.5 }]}
+                        disabled={loading}
                         onPress={async () => {
                             if (!email) {
                                 Alert.alert('Atenção', 'Digite seu e-mail no campo acima para recuperar a senha.');
@@ -238,7 +239,7 @@ export default function AuthScreen() {
                             }
                         }}
                     >
-                    <Text style={styles.forgotText}>Forgot Password?</Text>
+                    <Text style={styles.forgotText}>{loading ? 'Enviando...' : 'Forgot Password?'}</Text>
                     </TouchableOpacity>
                 )}
 
@@ -249,7 +250,9 @@ export default function AuthScreen() {
                     end={{x: 1, y: 0}}
                     style={styles.buttonGradient}
                     >
-                    {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>{isLogin ? 'SIGN IN' : 'SIGN UP'}</Text>}
+                    <Text style={styles.buttonText}>
+                        {loading ? 'AGUARDE...' : (isLogin ? 'LOGIN' : 'REGISTER')}
+                    </Text>
                     </LinearGradient>
                 </TouchableOpacity>
                 </View>
