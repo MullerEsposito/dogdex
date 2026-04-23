@@ -8,7 +8,10 @@ import { supabase } from '../services/supabase';
 import { getResetPasswordHTML } from '../templates/resetPasswordTemplate';
 
 const prisma = getPrisma();
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('FATAL: JWT_SECRET environment variable is not set. Server cannot start.');
+}
 
 export const register = async (req: Request, res: Response) => {
   try {
