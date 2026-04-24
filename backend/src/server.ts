@@ -47,11 +47,7 @@ app.use((req, res, next) => {
 
 app.use(routes);
 
-// Middleware de Debug para 404
-app.use((req, res, next) => {
-  console.log(`[404 DEBUG] Rota não encontrada FINAL: ${req.method} ${req.url}`);
-  next();
-});
+
 
 // Error Handler Global
 app.use((err: any, req: any, res: any, next: any) => {
@@ -87,11 +83,6 @@ const PORT = process.env.PORT || 3000;
 async function start() {
   try {
     await loadModel();
-    
-    console.log('🔍 Mapeando rotas registradas...');
-    if ((app as any)._router && (app as any)._router.stack) {
-      logRoutes((app as any)._router.stack);
-    }
 
     app.listen(Number(PORT), '0.0.0.0', () => {
       console.log(`Servidor rodando em porta ${PORT} 🚀`);

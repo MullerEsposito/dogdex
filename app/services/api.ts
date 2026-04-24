@@ -5,11 +5,9 @@ import { AnalyzeResult } from '@dogdex/shared';
 const getBaseUrl = () => {
   // 1. Tenta o valor injetado pelo app.config.js (definido no build)
   const configUrl = Constants.expoConfig?.extra?.apiUrl;
-  
+
   // 2. Tenta a variável de ambiente direta (vinda do cross-env ou .env)
   const publicUrl = process.env.EXPO_PUBLIC_API_URL;
-  
-  console.log(`[DEBUG] configUrl: ${configUrl}, publicUrl: ${publicUrl}, OS: ${Platform.OS}`);
 
   const url = configUrl || publicUrl;
   if (url) return url;
@@ -22,7 +20,7 @@ const getBaseUrl = () => {
       return `http://${ip}:3000`;
     }
   }
-  
+
   // 4. Fallback final para qualquer plataforma
   return 'http://localhost:3000';
 };
@@ -55,12 +53,12 @@ export const analyzeDog = async (uri: string): Promise<AnalyzeResult> => {
 };
 
 export const sendSupportReport = async (
-  report: { 
-    type: 'bug' | 'feature'; 
-    text: string; 
+  report: {
+    type: 'bug' | 'feature';
+    text: string;
     userName?: string;
     userEmail?: string;
-    deviceInfo?: any 
+    deviceInfo?: any
   },
   screenshotUri?: string
 ): Promise<{ success: boolean; message?: string; error?: string; previewUrl?: string }> => {
