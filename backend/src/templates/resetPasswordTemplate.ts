@@ -1,5 +1,8 @@
+import escapeHtml from 'escape-html';
+
 export const getResetPasswordHTML = (token: string) => {
-  const deepLink = `dogdex://reset-password?token=${token}`;
+  const safeToken = escapeHtml(token);
+  const deepLink = `dogdex://reset-password?token=${safeToken}`;
 
   return `
     <!DOCTYPE html>
