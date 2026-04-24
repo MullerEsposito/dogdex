@@ -63,11 +63,39 @@ export default function AuthScreen() {
       if (isLogin) {
         await signIn(email, password);
       } else {
-        await signUp(email, password, name);
+        const result = await signUp(email, password, name);
+        if (result?.needsConfirmation) {
+          Alert.alert(
+            'Verifique seu e-mail',
+            'Enviamos um link de confirmação para o seu e-mail. Por favor, confirme para poder acessar o DogDex.',
+            [{ text: 'OK', onPress: () => setIsLogin(true) }]
+          );
+        }
       }
     } catch (error: any) {
-      const msg = error.message || 'Não foi possível completar a operação.';
-      Alert.alert('Erro na autenticação', msg);
+      if (error.code === 'EMAIL_NOT_CONFIRMED') {
+        Alert.alert(
+          'E-mail pendente',
+          'Seu e-mail ainda não foi verificado. Deseja que enviemos um novo link de confirmação?',
+          [
+            { text: 'Agora não', style: 'cancel' },
+            { 
+              text: 'Reenviar e-mail', 
+              onPress: async () => {
+                try {
+                  await authService.resendConfirmationEmail(email);
+                  Alert.alert('Sucesso', 'Um novo link foi enviado para o seu e-mail.');
+                } catch (resendError) {
+                  Alert.alert('Erro', 'Não foi possível reenviar o e-mail agora.');
+                }
+              }
+            }
+          ]
+        );
+      } else {
+        const msg = error.message || 'Não foi possível completar a operação.';
+        Alert.alert('Erro na autenticação', msg);
+      }
     } finally {
       setLoading(false);
     }

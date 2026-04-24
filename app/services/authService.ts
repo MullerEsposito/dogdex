@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import axios from 'axios';
@@ -13,8 +14,9 @@ export interface User {
 }
 
 export interface AuthResponse {
-  token: string;
-  user: User;
+  token?: string;
+  user?: User;
+  needsConfirmation?: boolean;
 }
 
 export const authService = {
@@ -30,6 +32,14 @@ export const authService = {
     });
 
     if (error) throw error;
+    
+    // Se não há sessão, mas o usuário foi criado, é porque precisa de confirmação de e-mail
+    if (!data.session && data.user) {
+      return {
+        needsConfirmation: true
+      };
+    }
+
     if (!data.session || !data.user) throw new Error('Falha no registro');
 
     return {
@@ -49,7 +59,14 @@ export const authService = {
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('Email not confirmed')) {
+        const customError = new Error('E-mail não confirmado. Por favor, verifique sua caixa de entrada.');
+        (customError as any).code = 'EMAIL_NOT_CONFIRMED';
+        throw customError;
+      }
+      throw error;
+    }
     if (!data.session || !data.user) throw new Error('Falha no login');
 
     return {
@@ -155,6 +172,90 @@ export const authService = {
     }
     
     return { success: true };
+  },
+
+  async resendConfirmationEmail(email: string) {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    });
+    if (error) throw error;
+    return { success: true };
+  },
+
+  async updateAvatar(userId: string, imageUri: string) {
+    console.log('[AuthService] updateAvatar - Iniciando para URI:', imageUri);
+    
+    // 1. Lê a imagem do disco usando FileSystem (mais robusto no Android)
+    let arrayBuffer: ArrayBuffer;
+    try {
+      console.log('[AuthService] FileSystem status:', !!FileSystem.readAsStringAsync);
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: 'base64', // Usando string direta para evitar erro de undefined no enum
+      });
+      
+      console.log('[AuthService] Base64 lido, convertendo para ArrayBuffer...');
+      // Conversão manual de Base64 para ArrayBuffer
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      arrayBuffer = bytes.buffer;
+      
+      console.log('[AuthService] updateAvatar - Arquivo lido e convertido com sucesso!');
+    } catch (readErr: any) {
+      console.error('[AuthService] updateAvatar - Erro ao ler arquivo local via FileSystem:', readErr);
+      throw new Error(`Não foi possível ler a imagem do celular: ${readErr.message}`);
+    }
+    
+    const fileExt = imageUri.split('.').pop();
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = fileName;
+
+    // 2. Faz o upload para o novo bucket 'avatars'
+    console.log('[AuthService] updateAvatar - Enviando para Supabase Storage...');
+    const { data, error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, arrayBuffer, {
+        contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (uploadError) {
+      console.error('[AuthService] updateAvatar - Erro no upload Supabase:', uploadError);
+      throw uploadError;
+    }
+
+    // 3. Pega a URL pública
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    console.log('[AuthService] updateAvatar - URL Pública gerada:', publicUrl);
+    return publicUrl;
+  },
+
+  async updateProfile(accessToken: string, data: { name?: string; avatarUrl?: string }) {
+    // 1. Atualiza no Supabase Auth (Metadados)
+    const { error: sbError } = await supabase.auth.updateUser({
+      data: {
+        full_name: data.name,
+        avatar_url: data.avatarUrl,
+      }
+    });
+
+    if (sbError) throw sbError;
+
+    // 2. Atualiza no nosso Backend (Tabela User)
+    const response = await axios.put(`${BASE_URL}/auth/update-profile`, data, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    return response.data;
   },
 
   async getMeBackend(accessToken: string) {

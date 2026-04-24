@@ -239,6 +239,32 @@ export const setPassword = async (req: Request, res: Response) => {
   }
 };
 
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+    const { name, avatarUrl } = req.body;
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        name: name || undefined,
+        avatarUrl: avatarUrl || undefined,
+      },
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+    res.status(200).json({ 
+      user: {
+        ...userWithoutPassword,
+        hasPassword: !!user.password
+      }
+    });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Error updating profile' });
+  }
+};
+
 export const getMe = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).userId;

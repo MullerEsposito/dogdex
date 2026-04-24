@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
-import { authService, User } from '../services/authService';
+import { authService, User, AuthResponse } from '../services/authService';
 import { Session } from '@supabase/supabase-js';
 
 interface AuthContextData {
@@ -8,7 +8,7 @@ interface AuthContextData {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, name?: string) => Promise<void>;
+  signUp: (email: string, password: string, name?: string) => Promise<AuthResponse | void>;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const signUp = async (email: string, password: string, name?: string) => {
-    await authService.register(email, password, name);
+    return await authService.register(email, password, name);
   };
 
   const signInWithGoogle = async () => {
