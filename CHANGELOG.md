@@ -14,6 +14,17 @@ Track all changes, fixes, and improvements introduced in each version of the Dog
 ### Security
 - **Token Hardening**: Reduced password reset token expiration to 15 minutes and implemented login invalidation.
 - **Admin Isolation**: Moved sensitive auth operations to the backend to protect credentials.
+- **JWT Secret Enforcement**: Eliminated hardcoded fallback secret; server now refuses to start without `JWT_SECRET` defined.
+- **CORS Restriction**: Replaced open `cors()` with a whitelist of allowed origins, blocking cross-origin abuse from unknown sites.
+- **Auth Rate Limiting**: Added rate limiter (10 req/15min per IP) to login, register, forgot-password and reset-password routes.
+- **Analyze Rate Limiting**: Added rate limiter (30 req/15min per IP) to the scanner route, protecting the TensorFlow model from DoS.
+- **Social Account Fix**: Replaced plaintext placeholder password with `null` for auto-provisioned social accounts.
+- **Anti-Enumeration**: Unified login error responses to prevent attackers from discovering registered emails.
+- **XSS Prevention**: Sanitized token parameter in reset password template using `escape-html`.
+- **Password Validation**: Added minimum length check to the reset-password endpoint, consistent with other auth routes.
+- **Body Parser Hardening**: Reduced JSON/urlencoded payload limit from 50MB to 1MB.
+- **Gitignore Update**: Added `.env.local` and `.env.*.local` patterns to prevent accidental secret commits.
+- **Debug Log Cleanup**: Removed all debug `console.log` statements that could leak internal URLs and stack traces in production.
 
 ### Fixed
 - **Environment Management**: Refactored `dev-menu.js` to automatically generate `.env.local`, ensuring the API URL correctly propagates.
