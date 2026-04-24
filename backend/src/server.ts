@@ -7,7 +7,31 @@ import { loadModel } from './ml/model';
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  process.env.API_URL,                        // Backend próprio (reset password page)
+  /^http:\/\/localhost(:\d+)?$/,              // Dev local (qualquer porta)
+  /^http:\/\/192\.168\.\d+\.\d+(:\d+)?$/,    // Rede local (dev mobile)
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Requisições sem Origin (mobile nativo, Postman, curl) são permitidas
+    if (!origin) return callback(null, true);
+
+    const isAllowed = allowedOrigins.some(allowed =>
+      allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+    );
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
