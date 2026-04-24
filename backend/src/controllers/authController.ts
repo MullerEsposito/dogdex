@@ -81,20 +81,17 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
 
-    // Se o usuário não tem senha (conta social)
-    if (!user.password) {
+    // Se o usuário não tem senha (conta social) — fluxo diferenciado
+    if (user && !user.password) {
       return res.status(403).json({ 
         error: 'Esta conta utiliza login social e não possui uma senha definida.',
         code: 'SOCIAL_ACCOUNT_MISSING_PASSWORD'
       });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
+    // Resposta genérica para "não encontrado" e "senha incorreta" (anti-enumeração)
+    if (!user || !(await bcrypt.compare(password, user.password!))) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
