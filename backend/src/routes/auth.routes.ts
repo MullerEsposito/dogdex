@@ -9,6 +9,8 @@ const router = Router();
  * Rate limiter para rotas públicas de autenticação.
  * Previne brute-force em login e spam de e-mails de recuperação.
  */
+const isTest = process.env.NODE_ENV === 'test';
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
   max: 10,                   // 10 tentativas por IP
@@ -17,6 +19,7 @@ const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => isTest,        // Desabilitado em testes
 });
 
 router.post('/register', authLimiter, register);

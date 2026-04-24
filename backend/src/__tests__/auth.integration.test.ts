@@ -111,13 +111,13 @@ describe('POST /auth/login', () => {
     expect(res.body).toHaveProperty('error');
   });
 
-  it('should return 404 if user does not exist', async () => {
+  it('should return 401 if user does not exist (anti-enumeration)', async () => {
     const res = await request(app).post('/auth/login').send({
       email: 'ghost@test.com',
       password: 'senha1234',
     });
 
-    expect(res.status).toBe(404);
+    expect(res.status).toBe(401);
     expect(res.body).toHaveProperty('error');
   });
 

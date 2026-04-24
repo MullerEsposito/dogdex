@@ -6,6 +6,7 @@ const path = require('path');
 // (dotenv não sobrescreve variáveis já existentes).
 process.env.NODE_ENV = 'test';
 process.env.DATABASE_URL = `file:${path.resolve(__dirname, 'prisma/test.db')}`;
+process.env.JWT_SECRET = 'test_jwt_secret_for_ci';
 
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {

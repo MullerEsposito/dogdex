@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// We use Supabase Postgres for production and development.
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id                 String     @id @default(uuid())
+  email              String     @unique
+  password           String?    // Hashed (Opcional para login social)
+  name               String?
+  socialProvider     String?    // ex: 'google', 'apple'
+  isSocial           Boolean    @default(false)
+  resetToken         String?    @unique
+  resetTokenExpires  DateTime?
+  entries            DogEntry[]
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model DogEntry {
+  id           String   @id @default(uuid()) // UUID instead of local timestamp IDs
+  localId      String?  // Map to local AsyncStorage ID for sync resolution
+  breedName    String
+  confidence   Float
+  locationAddr String
+  imageUri     String   // This will be the Supabase public URL
+  status       String   @default("synced") // e.g., "synced", "pending", "deleted"
+  timestamp    DateTime @default(now())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+}
