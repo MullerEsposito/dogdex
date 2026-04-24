@@ -15,6 +15,7 @@ model User {
   email              String     @unique
   password           String?    // Hashed (Opcional para login social)
   name               String?
+  avatarUrl          String?
   socialProvider     String?    // ex: 'google', 'apple'
   isSocial           Boolean    @default(false)
   resetToken         String?    @unique

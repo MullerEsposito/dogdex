@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Platform, Dimensions, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
@@ -24,6 +25,7 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
   const [showPasswordForm, setShowPasswordForm] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [hasPassword, setHasPassword] = useState<boolean | null>(null);
 
   const fetchProfile = async () => {
@@ -91,6 +93,39 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
     }
   };
 
+  const handleUpdateAvatar = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+
+      if (result.canceled || !result.assets[0]) return;
+
+      setUploading(true);
+      const imageUri = result.assets[0].uri;
+
+      if (!user?.id || !session?.access_token) return;
+
+      // 1. Upload
+      const publicUrl = await authService.updateAvatar(user.id, imageUri);
+
+      // 2. Update Profile
+      await authService.updateProfile(session.access_token, {
+        avatarUrl: publicUrl
+      });
+
+      Alert.alert('Sucesso', 'Avatar atualizado com sucesso!');
+    } catch (err) {
+      console.error('Update avatar error:', err);
+      Alert.alert('Erro', 'Não foi possível atualizar o avatar.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (!isVisible && opacity.value === 0) return null;
 
   return (
@@ -106,7 +141,11 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
           </TouchableOpacity>
 
           <View style={styles.profileHeader}>
-            <View style={styles.avatarContainer}>
+            <TouchableOpacity 
+              style={styles.avatarContainer} 
+              onPress={handleUpdateAvatar}
+              disabled={uploading}
+            >
               {user?.avatarUrl ? (
                 <Image 
                   source={{ uri: user.avatarUrl }} 
@@ -119,7 +158,15 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
                   <Ionicons name="person" size={40} color="#555" />
                 </View>
               )}
-            </View>
+              
+              <View style={styles.editBadge}>
+                {uploading ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Ionicons name="camera" size={14} color="#FFF" />
+                )}
+              </View>
+            </TouchableOpacity>
             <View style={styles.userInfo}>
               <Text style={styles.userName}>{user?.name || 'Explorador DogDex'}</Text>
               <Text style={styles.userEmail}>{user?.email}</Text>
@@ -232,23 +279,37 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   avatarContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#2A303A',
-    borderWidth: 2,
-    borderColor: '#4A9EDB',
-    justifyContent: 'center',
-    alignItems: 'center',
-    overflow: 'hidden',
+    position: 'relative',
   },
   avatar: {
-    width: '100%',
-    height: '100%',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#222',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  editBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: COLORS.accent,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#111',
   },
   userInfo: {
     marginLeft: 18,

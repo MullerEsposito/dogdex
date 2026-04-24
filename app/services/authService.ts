@@ -13,8 +13,9 @@ export interface User {
 }
 
 export interface AuthResponse {
-  token: string;
-  user: User;
+  token?: string;
+  user?: User;
+  needsConfirmation?: boolean;
 }
 
 export const authService = {
@@ -30,6 +31,14 @@ export const authService = {
     });
 
     if (error) throw error;
+    
+    // Se não há sessão, mas o usuário foi criado, é porque precisa de confirmação de e-mail
+    if (!data.session && data.user) {
+      return {
+        needsConfirmation: true
+      };
+    }
+
     if (!data.session || !data.user) throw new Error('Falha no registro');
 
     return {
@@ -49,7 +58,14 @@ export const authService = {
       password,
     });
 
-    if (error) throw error;
+    if (error) {
+      if (error.message.includes('Email not confirmed')) {
+        const customError = new Error('E-mail não confirmado. Por favor, verifique sua caixa de entrada.');
+        (customError as any).code = 'EMAIL_NOT_CONFIRMED';
+        throw customError;
+      }
+      throw error;
+    }
     if (!data.session || !data.user) throw new Error('Falha no login');
 
     return {
@@ -155,6 +171,60 @@ export const authService = {
     }
     
     return { success: true };
+  },
+
+  async resendConfirmationEmail(email: string) {
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+    });
+    if (error) throw error;
+    return { success: true };
+  },
+
+  async updateAvatar(userId: string, imageUri: string) {
+    // 1. Converte a imagem para blob para upload
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    
+    const fileExt = imageUri.split('.').pop();
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = fileName; // No novo bucket, salvamos direto na raiz
+
+    // 2. Faz o upload para o novo bucket 'avatars'
+    const { data, error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, blob);
+
+    if (uploadError) throw uploadError;
+
+    // 3. Pega a URL pública
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  },
+
+  async updateProfile(accessToken: string, data: { name?: string; avatarUrl?: string }) {
+    // 1. Atualiza no Supabase Auth (Metadados)
+    const { error: sbError } = await supabase.auth.updateUser({
+      data: {
+        full_name: data.name,
+        avatar_url: data.avatarUrl,
+      }
+    });
+
+    if (sbError) throw sbError;
+
+    // 2. Atualiza no nosso Backend (Tabela User)
+    const response = await axios.put(`${BASE_URL}/auth/update-profile`, data, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    return response.data;
   },
 
   async getMeBackend(accessToken: string) {
