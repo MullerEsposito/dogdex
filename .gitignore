@@ -3,6 +3,8 @@ dist/
 .expo/
 *.log
 .env
+.env.local
+.env.*.local
 google-credentials.json
 kaggle.json
 uploads/
