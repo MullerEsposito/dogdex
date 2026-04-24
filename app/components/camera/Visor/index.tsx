@@ -4,6 +4,7 @@ import { CameraView } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { styles } from './styles';
 import { AnalyzeResult } from '@dogdex/shared';
+import Constants from 'expo-constants';
 
 type VisorProps = {
   photo: any;
@@ -16,8 +17,11 @@ type VisorProps = {
 };
 
 export default function Visor({ photo, isCameraActive, cameraRef, zoom, status, result, setIsCameraReady }: VisorProps) {
+  const appVersion = Constants.expoConfig?.version || '0.2.1';
+
   return (
     <View style={styles.visorOuter}>
+      <Text style={styles.visorVersionText}>Dogdex V{appVersion}</Text>
       <View style={styles.visorInner}>
         <View style={styles.cameraContainer}>
           {!photo ? (

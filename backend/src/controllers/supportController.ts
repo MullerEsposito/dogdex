@@ -1,53 +1,8 @@
 import { Request, Response } from 'express';
-import nodemailer from 'nodemailer';
 import { SupportReport } from '@dogdex/shared';
-import fs from 'fs';
+import { emailService } from '../services/emailService';
 
 class SupportController {
-  private async createTransporter() {
-    // Para simplificar, usamos variáveis de ambiente
-    // Se não houver credenciais, usamos uma conta de teste do Ethereal
-    const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS } = process.env;
-
-    if (SMTP_USER && SMTP_PASS) {
-      const isGmail = (SMTP_HOST || '').includes('gmail') || SMTP_USER.includes('gmail.com');
-      
-      const config: any = isGmail ? {
-        service: 'gmail',
-        auth: {
-          user: SMTP_USER,
-          pass: SMTP_PASS,
-        },
-      } : {
-        host: SMTP_HOST || 'smtp.gmail.com',
-        port: Number(SMTP_PORT) || 587,
-        secure: SMTP_PORT === '465',
-        auth: {
-          user: SMTP_USER,
-          pass: SMTP_PASS,
-        },
-      };
-
-      return nodemailer.createTransport(config);
-    }
-
-    // Fallback para conta de teste do Ethereal
-    const testAccount = await nodemailer.createTestAccount();
-    console.log('--- USANDO CONTA DE TESTE NODEMAILER ---');
-    console.log('User:', testAccount.user);
-    console.log('Pass:', testAccount.pass);
-    
-    return nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-  }
-
   private escapeHTML(str: string): string {
     return str
       .replace(/&/g, '&amp;')
@@ -59,8 +14,6 @@ class SupportController {
 
   async handle(req: Request, res: Response) {
     console.log('--- NOVO RELATO DE SUPORTE ---');
-    console.log('Body:', req.body);
-    console.log('File:', req.file ? req.file.filename : 'Nenhum');
 
     try {
       let { type, text, deviceInfo, userName, userEmail } = req.body;
@@ -72,11 +25,9 @@ class SupportController {
         });
       }
 
-      // Sanitização básica contra XSS
       userName = userName ? this.escapeHTML(userName) : userName;
       text = this.escapeHTML(text);
 
-      // Proteção contra Header Injection
       if (userEmail) {
         userEmail = userEmail.replace(/[\r\n]/g, '').trim();
       }
@@ -100,13 +51,10 @@ class SupportController {
       };
 
       const file = req.file;
-      const transporter = await this.createTransporter();
-
       const isBug = type.toLowerCase() === 'bug';
       const badgeColor = isBug ? '#ef4444' : '#3b82f6';
       
       const mailOptions: any = {
-        from: '"DogDex Support" <support@dogdex.app>',
         to: process.env.SUPPORT_EMAIL || 'admin@example.com',
         replyTo: userEmail || undefined,
         subject: `[DogDex ${(type || 'info').toUpperCase()}] Novo Relato de ${userName || 'Usuário'}`,
@@ -171,19 +119,8 @@ class SupportController {
         });
       }
 
-      const info = await transporter.sendMail(mailOptions);
+      const { previewUrl } = await emailService.sendMail(mailOptions);
       
-      console.log('Message sent: %s', info.messageId);
-      // Link para visualizar e-mail se for Ethereal
-      const previewUrl = nodemailer.getTestMessageUrl(info as any);
-      if (previewUrl) {
-        console.log('Preview URL: %s', previewUrl);
-      }
-
-      // Se enviou o e-mail, podemos apagar o arquivo temporário se desejar
-      // Mas o multer salva em uploads/, vamos manter por enquanto ou apagar depois de enviar.
-      // if (file) fs.unlinkSync(file.path);
-
       return res.status(200).json({ 
         success: true, 
         message: 'Relatório enviado com sucesso!',

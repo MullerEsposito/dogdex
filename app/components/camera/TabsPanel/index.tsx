@@ -18,7 +18,7 @@ export default function TabsPanel() {
           </View>
         </TouchableOpacity>
         
-        <CopilotStep text="Veja aqui todos os cães que você já identificou e salvou." order={7} name="dogdex">
+        <CopilotStep text="Veja aqui todos os cães identificados. Seus dados são sincronizados automaticamente com a nuvem!" order={7} name="dogdex">
           <WalkthroughableTouchableOpacity 
             style={[styles.tabItem, styles.tabItemCenter]} 
             activeOpacity={0.7}

@@ -5,24 +5,28 @@ import { AnalyzeResult } from '@dogdex/shared';
 const getBaseUrl = () => {
   // 1. Tenta o valor injetado pelo app.config.js (definido no build)
   const configUrl = Constants.expoConfig?.extra?.apiUrl;
-  if (configUrl) return configUrl;
 
-  // 2. Tenta a variável de ambiente direta (para o script interativo)
+  // 2. Tenta a variável de ambiente direta (vinda do cross-env ou .env)
   const publicUrl = process.env.EXPO_PUBLIC_API_URL;
-  if (publicUrl) return publicUrl;
 
-  if (Platform.OS === 'web') return 'http://localhost:3000';
-  
-  const debuggerHost = Constants.expoConfig?.hostUri;
-  if (debuggerHost) {
-    const ip = debuggerHost.split(':')[0];
-    return `http://${ip}:3000`;
+  const url = configUrl || publicUrl;
+  if (url) return url;
+
+  // 3. Se não houver URL definida, tenta auto-detectar para Android
+  if (Platform.OS !== 'web') {
+    const debuggerHost = Constants.expoConfig?.hostUri;
+    if (debuggerHost) {
+      const ip = debuggerHost.split(':')[0];
+      return `http://${ip}:3000`;
+    }
   }
-  
+
+  // 4. Fallback final para qualquer plataforma
   return 'http://localhost:3000';
 };
 
-const BASE_URL = getBaseUrl();
+export const BASE_URL = getBaseUrl();
+console.log(`🚀 [DOGDEX] API BASE_URL DEFINIDA COMO: ${BASE_URL}`);
 console.log(`[API] Base URL configurada: ${BASE_URL} 🌐`);
 
 export const analyzeDog = async (uri: string): Promise<AnalyzeResult> => {
@@ -49,12 +53,12 @@ export const analyzeDog = async (uri: string): Promise<AnalyzeResult> => {
 };
 
 export const sendSupportReport = async (
-  report: { 
-    type: 'bug' | 'feature'; 
-    text: string; 
+  report: {
+    type: 'bug' | 'feature';
+    text: string;
     userName?: string;
     userEmail?: string;
-    deviceInfo?: any 
+    deviceInfo?: any
   },
   screenshotUri?: string
 ): Promise<{ success: boolean; message?: string; error?: string; previewUrl?: string }> => {

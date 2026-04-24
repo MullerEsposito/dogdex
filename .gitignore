@@ -3,6 +3,8 @@ dist/
 .expo/
 *.log
 .env
+.env.local
+.env.*.local
 google-credentials.json
 kaggle.json
 uploads/
@@ -13,6 +15,12 @@ read_tail.js
 backend/verify_fix.js
 backend/src/shared
 backend/uploads/
+
+# Databases
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
 
 # Playwright
 test-results/

@@ -21,6 +21,7 @@ import Visor from '../components/camera/Visor';
 import TabsPanel from '../components/camera/TabsPanel';
 import ControlPanel from '../components/camera/ControlPanel';
 import LcdOverlay from '../components/camera/LcdOverlay';
+import ProfileModal from '../components/ProfileModal';
 
 export default function CameraScreen() {
   return (
@@ -44,6 +45,7 @@ function MainCameraScreen() {
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [zoom, setZoom] = useState(0);
   const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
+  const [isProfileVisible, setIsProfileVisible] = useState(false);
   const cameraRef = useRef<any>(null);
 
   const { playSound, stopLoadingSound } = useDogdexSounds();
@@ -263,6 +265,7 @@ function MainCameraScreen() {
           isAudioEnabled={isAudioEnabled} 
           onToggleAudio={toggleAudio}
           onStartTour={() => start()}
+          onOpenProfile={() => setIsProfileVisible(true)}
         />
       
       <Visor 
@@ -302,6 +305,11 @@ function MainCameraScreen() {
       <View style={styles.bottomRightArcInner} pointerEvents="none" />
       <View style={styles.bottomCenterSweep} pointerEvents="none" />
       </SafeAreaView>
+
+      <ProfileModal 
+        isVisible={isProfileVisible} 
+        onClose={() => setIsProfileVisible(false)} 
+      />
     </View>
   );
 }

@@ -20,6 +20,15 @@ export const styles = StyleSheet.create({
     borderRightColor: '#2C3545',
     zIndex: 5,
   },
+  visorVersionText: {
+    position: 'absolute',
+    top: 0,
+    left: 30,
+    color: 'rgba(255,255,255,0.4)',
+    fontSize: 11,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
+  },
   visorInner: {
     backgroundColor: '#1E2328', // Darker inner bezel
     borderRadius: 20,

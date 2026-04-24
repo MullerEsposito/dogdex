@@ -15,7 +15,9 @@ import {
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useDogdexStorage, DogdexEntry } from '../hooks/useDogdexStorage';
+import { useAuth } from '../hooks/useAuth';
 import { useEffect, useState } from 'react';
+import ProfileModal from '../components/ProfileModal';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 2;
@@ -23,14 +25,21 @@ const ITEM_WIDTH = (width - 40) / COLUMN_COUNT;
 
 export default function DogdexScreen() {
   const router = useRouter();
-  const { getEntries, deleteEntry, exportBackup, importBackup } = useDogdexStorage();
+  const { user, signOut } = useAuth();
+  const { getEntries, deleteEntry, syncWithCloud } = useDogdexStorage();
   const [entries, setEntries] = useState<DogdexEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDog, setSelectedDog] = useState<DogdexEntry | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isProfileVisible, setIsProfileVisible] = useState(false);
 
   useEffect(() => {
-    loadData();
+    const init = async () => {
+      await loadData();
+      await handleSync(); // Auto-sync on load
+    };
+    init();
   }, []);
 
   const loadData = async () => {
@@ -38,6 +47,23 @@ export default function DogdexScreen() {
     const data = await getEntries();
     setEntries(data);
     setLoading(false);
+  };
+
+  const handleSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const result = await syncWithCloud();
+      if (result.pulled > 0 || result.pushed > 0) {
+        // Reload if anything changed
+        const data = await getEntries();
+        setEntries(data);
+      }
+    } catch (err) {
+      console.warn('Silent sync failed:', err);
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleDelete = async (id: string, name: string) => {
@@ -65,24 +91,32 @@ export default function DogdexScreen() {
       );
     }
   };
+  
+  const handleLogout = () => {
+    const performLogout = async () => {
+      try {
+        await signOut();
+      } catch (err: any) {
+        Alert.alert('Erro', 'Não foi possível sair.');
+      }
+    };
 
-  const handleExport = async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
-    await exportBackup();
-    setIsProcessing(false);
-  };
-
-  const handleImport = async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
-    const count = await importBackup();
-    if (count > 0) {
-      Alert.alert('Importação concluída', `${count} registro(s) restaurados com sucesso!`);
-      await loadData();
+    if (Platform.OS === 'web') {
+      if (confirm('Deseja realmente sair?')) {
+        performLogout();
+      }
+    } else {
+      Alert.alert(
+        'Sair',
+        'Deseja realmente encerrar sua sessão?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Sair', style: 'destructive', onPress: performLogout }
+        ]
+      );
     }
-    setIsProcessing(false);
   };
+
 
   const renderItem = ({ item }: { item: DogdexEntry }) => (
     <TouchableOpacity 
@@ -95,6 +129,16 @@ export default function DogdexScreen() {
         <View style={styles.confidenceBadge}>
           <Text style={styles.confidenceText}>{((item.confidence || 0) * 100).toFixed(0)}%</Text>
         </View>
+        
+        {/* Sync Status Icon */}
+        <View style={styles.syncIndicator}>
+          <Ionicons 
+            name={item.status === 'synced' ? "cloud-done" : "cloud-upload"} 
+            size={14} 
+            color={item.status === 'synced' ? "#4CAF50" : "#FFA000"} 
+          />
+        </View>
+
         <TouchableOpacity 
           style={styles.deleteButton} 
           onPress={() => handleDelete(item.id, item.breedName)}
@@ -121,21 +165,29 @@ export default function DogdexScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#FFF" />
         </TouchableOpacity>
-        <Text style={styles.title}>DOGDEX INVENTORY</Text>
+        
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>DOGDEX</Text>
+          {user && (
+            <TouchableOpacity onPress={() => setIsProfileVisible(true)} activeOpacity={0.7}>
+              <Text style={styles.userEmail} numberOfLines={1}>
+                {user.email} <Ionicons name="chevron-down" size={10} color="#666" />
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
         <View style={styles.headerActions}>
           <TouchableOpacity
-            onPress={handleImport}
-            style={[styles.actionButton, isProcessing && styles.actionButtonDisabled]}
-            disabled={isProcessing}
+            onPress={handleSync}
+            style={[styles.actionButton, isSyncing && styles.actionButtonDisabled]}
+            disabled={isSyncing}
           >
-            <Ionicons name="cloud-download-outline" size={20} color={isProcessing ? '#555' : '#4CAF50'} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={handleExport}
-            style={[styles.actionButton, isProcessing && styles.actionButtonDisabled]}
-            disabled={isProcessing}
-          >
-            <Ionicons name="cloud-upload-outline" size={20} color={isProcessing ? '#555' : '#4A9EDB'} />
+            <Ionicons 
+              name={isSyncing ? "sync" : "refresh"} 
+              size={20} 
+              color={isSyncing ? "#555" : "#FFF"} 
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -213,6 +265,11 @@ export default function DogdexScreen() {
           </View>
         </View>
       </Modal>
+
+      <ProfileModal 
+        isVisible={isProfileVisible} 
+        onClose={() => setIsProfileVisible(false)} 
+      />
     </SafeAreaView>
   );
 }
@@ -234,11 +291,22 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 5,
   },
+  titleContainer: {
+    flex: 1,
+    alignItems: 'center',
+    marginHorizontal: 10,
+  },
   title: {
     color: '#FFF',
     fontSize: 18,
     fontWeight: 'bold',
     letterSpacing: 2,
+  },
+  userEmail: {
+    color: '#AAA',
+    fontSize: 10,
+    marginTop: 2,
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
   headerActions: {
     flexDirection: 'row',
@@ -298,6 +366,14 @@ const styles = StyleSheet.create({
   },
   cardInfo: {
     padding: 10,
+  },
+  syncIndicator: {
+    position: 'absolute',
+    top: 8,
+    right: 45, // Next to confidence badge
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 4,
+    borderRadius: 12,
   },
   breedName: {
     color: '#FFF',
