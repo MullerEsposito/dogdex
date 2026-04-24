@@ -32,7 +32,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
             id: user.id,
             email: user.email || `${user.id}@external.auth`,
             name: user.user_metadata?.full_name || 'Supabase User',
-            password: 'EXTERNAL_AUTH_NO_PASSWORD',
+            password: null,
+            isSocial: true,
           }
         });
       }
