@@ -158,6 +158,10 @@ export const resetPassword = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Token and new password are required' });
     }
 
+    if (newPassword.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
     const user = await prisma.user.findFirst({
       where: {
         resetToken: token,
