@@ -1,4 +1,5 @@
 import { Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system/legacy';
 import * as WebBrowser from 'expo-web-browser';
 import { makeRedirectUri } from 'expo-auth-session';
 import axios from 'axios';
@@ -183,26 +184,56 @@ export const authService = {
   },
 
   async updateAvatar(userId: string, imageUri: string) {
-    // 1. Converte a imagem para blob para upload
-    const response = await fetch(imageUri);
-    const blob = await response.blob();
+    console.log('[AuthService] updateAvatar - Iniciando para URI:', imageUri);
+    
+    // 1. Lê a imagem do disco usando FileSystem (mais robusto no Android)
+    let arrayBuffer: ArrayBuffer;
+    try {
+      console.log('[AuthService] FileSystem status:', !!FileSystem.readAsStringAsync);
+      const base64 = await FileSystem.readAsStringAsync(imageUri, {
+        encoding: 'base64', // Usando string direta para evitar erro de undefined no enum
+      });
+      
+      console.log('[AuthService] Base64 lido, convertendo para ArrayBuffer...');
+      // Conversão manual de Base64 para ArrayBuffer
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      arrayBuffer = bytes.buffer;
+      
+      console.log('[AuthService] updateAvatar - Arquivo lido e convertido com sucesso!');
+    } catch (readErr: any) {
+      console.error('[AuthService] updateAvatar - Erro ao ler arquivo local via FileSystem:', readErr);
+      throw new Error(`Não foi possível ler a imagem do celular: ${readErr.message}`);
+    }
     
     const fileExt = imageUri.split('.').pop();
     const fileName = `${userId}-${Date.now()}.${fileExt}`;
-    const filePath = fileName; // No novo bucket, salvamos direto na raiz
+    const filePath = fileName;
 
     // 2. Faz o upload para o novo bucket 'avatars'
+    console.log('[AuthService] updateAvatar - Enviando para Supabase Storage...');
     const { data, error: uploadError } = await supabase.storage
       .from('avatars')
-      .upload(filePath, blob);
+      .upload(filePath, arrayBuffer, {
+        contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,
+        cacheControl: '3600',
+        upsert: true
+      });
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('[AuthService] updateAvatar - Erro no upload Supabase:', uploadError);
+      throw uploadError;
+    }
 
     // 3. Pega a URL pública
     const { data: { publicUrl } } = supabase.storage
       .from('avatars')
       .getPublicUrl(filePath);
 
+    console.log('[AuthService] updateAvatar - URL Pública gerada:', publicUrl);
     return publicUrl;
   },
 

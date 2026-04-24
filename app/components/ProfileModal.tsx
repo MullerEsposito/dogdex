@@ -106,21 +106,39 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
 
       setUploading(true);
       const imageUri = result.assets[0].uri;
+      console.log('📸 [AVATAR] Imagem selecionada:', imageUri);
 
-      if (!user?.id || !session?.access_token) return;
+      if (!user?.id || !session?.access_token) {
+        throw new Error('Sessão expirada ou usuário não identificado.');
+      }
 
-      // 1. Upload
-      const publicUrl = await authService.updateAvatar(user.id, imageUri);
+      // 1. Upload para o Storage
+      console.log('☁️ [AVATAR] Iniciando upload para o Supabase...');
+      let publicUrl = '';
+      try {
+        publicUrl = await authService.updateAvatar(user.id, imageUri);
+        console.log('✅ [AVATAR] Upload concluído:', publicUrl);
+      } catch (uploadErr: any) {
+        console.error('❌ [AVATAR] Falha no upload:', uploadErr);
+        throw new Error(`Erro no Storage: ${uploadErr.message || 'Verifique as políticas do bucket.'}`);
+      }
 
-      // 2. Update Profile
-      await authService.updateProfile(session.access_token, {
-        avatarUrl: publicUrl
-      });
+      // 2. Update Profile (Supabase + Backend)
+      console.log('🔄 [AVATAR] Sincronizando perfil...');
+      try {
+        await authService.updateProfile(session.access_token, {
+          avatarUrl: publicUrl
+        });
+        console.log('✅ [AVATAR] Perfil atualizado com sucesso!');
+      } catch (profileErr: any) {
+        console.error('❌ [AVATAR] Falha na sincronização:', profileErr);
+        throw new Error(`Erro no Backend/Auth: ${profileErr.response?.data?.error || profileErr.message}`);
+      }
 
       Alert.alert('Sucesso', 'Avatar atualizado com sucesso!');
-    } catch (err) {
-      console.error('Update avatar error:', err);
-      Alert.alert('Erro', 'Não foi possível atualizar o avatar.');
+    } catch (err: any) {
+      console.error('🚨 [AVATAR] Erro geral:', err);
+      Alert.alert('Erro ao Atualizar', err.message);
     } finally {
       setUploading(false);
     }
