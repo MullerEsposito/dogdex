@@ -4,6 +4,9 @@ import { AudioProvider } from '../context/AudioContext';
 import { AuthProvider } from '../context/AuthContext';
 import { useAuth } from '../hooks/useAuth';
 
+import { useUpdateCheck } from '../hooks/useUpdateCheck';
+import UpdateModal from '../components/UpdateModal';
+
 function InitialLayout() {
   const { user, loading } = useAuth();
   const segments = useSegments();
@@ -27,10 +30,26 @@ function InitialLayout() {
 }
 
 export default function RootLayout() {
+  const { 
+    showModal, 
+    isForceUpdate, 
+    updateInfo, 
+    handleUpdate, 
+    handleDismiss 
+  } = useUpdateCheck();
+
   return (
     <AuthProvider>
       <AudioProvider>
         <InitialLayout />
+        <UpdateModal 
+          isVisible={showModal}
+          isForceUpdate={isForceUpdate}
+          latestVersion={updateInfo?.latestVersion || ''}
+          releaseNotes={updateInfo?.releaseNotes}
+          onUpdate={handleUpdate}
+          onDismiss={handleDismiss}
+        />
       </AudioProvider>
     </AuthProvider>
   );

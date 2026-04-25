@@ -14,6 +14,7 @@
     "app:web": "npm run web --workspace=app",
     "backend:dev": "npm run dev --workspace=backend",
     "shared:build": "npm run build --workspace=shared",
+    "version:sync": "node scripts/sync-versions.js",
     "test": "npm test --workspaces --if-present",
     "test:e2e": "concurrently -k -s first \"npm run backend:dev\" \"npm run app:web\" \"wait-on http://localhost:3000 http://localhost:8081 && npx playwright test --project=chromium --workspace=app\""
   },
