@@ -74,3 +74,14 @@ When making changes:
 3. Run `npm run test:auth` and `npm run test:sync`
 4. Verify adapter regeneration at `prisma/adapter-sqlite.js`
 5. Verify sync endpoints work with test data
+
+================================================================
+REMOTE REPOSITORY INTERACTION
+================================================================
+
+  - Always use the GitHub CLI (`gh`) for remote operations:
+    - Issues: `gh issue list`, `gh issue view <number>`, `gh issue create`
+    - Pull Requests: `gh pr create`, `gh pr checkout`, `gh pr status`
+    - Repository info: `gh repo view`
+  - Do not use direct git remote commands unless necessary for low-level plumbing.
+  - Ensure `gh` is authenticated before attempting operations.
