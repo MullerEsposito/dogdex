@@ -113,13 +113,15 @@ function MainCameraScreen() {
   useEffect(() => {
     (async () => {
       const completed = await hasCompletedTour();
-      if (!completed && permission?.granted) {
+      // Wait until both permissions have been resolved (prompts dismissed) to avoid blocking the Copilot modal
+      if (!completed && permission && permission.status !== 'undetermined' && locationPermission !== null) {
         setTimeout(() => {
+          resetCamera();
           start();
         }, 800);
       }
     })();
-  }, [permission?.granted]);
+  }, [permission?.status, locationPermission]);
 
   useEffect(() => {
     if (copilotEvents) {
@@ -270,7 +272,10 @@ function MainCameraScreen() {
           isCameraReady={isCameraReady} 
           isAudioEnabled={isAudioEnabled} 
           onToggleAudio={toggleAudio}
-          onStartTour={() => start()}
+          onStartTour={() => {
+            resetCamera();
+            start();
+          }}
           onOpenProfile={() => setIsProfileVisible(true)}
         />
       
