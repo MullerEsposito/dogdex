@@ -18,7 +18,8 @@ module.exports = ({ config }) => {
     },
     plugins: [
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-audio"
     ],
     extra: {
       ...config.extra,

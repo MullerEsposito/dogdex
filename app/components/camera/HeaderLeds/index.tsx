@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, TouchableOpacity, Image, Alert, Platform } from 'react-native';
+import { View, Text, Animated, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
@@ -23,14 +23,13 @@ export default function HeaderLeds({ status, isCameraReady, isAudioEnabled, onTo
   const router = useRouter();
   const { user, signOut } = useAuth();
   const appVersion = Constants.expoConfig?.version || '1.0';
-  const avatarUrl = user?.avatarUrl;
   const operatorId = user?.email?.split('@')[0].toUpperCase();
 
   const handleLogout = () => {
     const performLogout = async () => {
       try {
         await signOut();
-        router.replace('/auth');
+        router.replace('/auth' as any);
       } catch (error) {
         console.error('Falha ao sair:', error);
       }
@@ -81,7 +80,7 @@ export default function HeaderLeds({ status, isCameraReady, isAudioEnabled, onTo
         useNativeDriver: true 
       }).start();
     }
-  }, [status]);
+  }, [status, ledAnim1, ledAnim2, ledAnim3, mainLensAnim]);
 
   const getLensColor = () => {
     switch (status) {

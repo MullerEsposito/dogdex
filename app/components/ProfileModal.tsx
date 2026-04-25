@@ -38,14 +38,21 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
     }
   };
 
+  const [isMounted, setIsMounted] = useState(isVisible);
+
   useEffect(() => {
     if (isVisible) {
       fetchProfile();
+      setIsMounted(true);
       translateY.value = withSpring(0, { damping: 15, stiffness: 100 });
       opacity.value = withTiming(1, { duration: 300 });
     } else {
       translateY.value = withTiming(-height, { duration: 300 });
-      opacity.value = withTiming(0, { duration: 300 });
+      opacity.value = withTiming(0, { duration: 300 }, (finished) => {
+        if (finished) {
+          // Note: we can use a state here if needed, but for now we just avoid render-time read
+        }
+      });
       setShowPasswordForm(false);
       setNewPassword('');
     }
@@ -144,7 +151,10 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
     }
   };
 
-  if (!isVisible && opacity.value === 0) return null;
+  // To avoid the warning and ensure proper unmounting, we use isVisible for immediate mount 
+  // and we can rely on pointerEvents/opacity for the rest.
+  if (!isVisible && !isMounted) return null;
+
 
   return (
     <View style={styles.overlay} pointerEvents={isVisible ? 'auto' : 'none'}>

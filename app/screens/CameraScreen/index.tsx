@@ -1,27 +1,27 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { useCameraPermissions, Camera } from 'expo-camera';
-import { Text, TouchableOpacity, Alert, Linking, View, StyleSheet, Platform, StatusBar, AppState } from 'react-native';
+import { Text, Alert, View, StyleSheet, Platform, StatusBar, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import * as Location from 'expo-location';
-import { analyzeDog } from '../services/api';
+import { analyzeDog } from '../../services/api';
 import { AnalyzeResult } from '@dogdex/shared';
-import { styles } from './CameraScreen.styles';
+import { styles } from './styles';
 import { CopilotProvider, useCopilot } from 'react-native-copilot';
 
 // Hooks
-import { useDogdexSounds } from '../hooks/useDogdexSounds';
-import { useDogdexStorage } from '../hooks/useDogdexStorage';
-import { useDogdexSpeech } from '../hooks/useDogdexSpeech';
-import { useAudio } from '../context/AudioContext';
+import { useDogdexSounds } from '../../hooks/useDogdexSounds';
+import { useDogdexStorage } from '../../hooks/useDogdexStorage';
+import { useDogdexSpeech } from '../../hooks/useDogdexSpeech';
+import { useAudio } from '../../context/AudioContext';
 
 // UI Components
-import HeaderLeds from '../components/camera/HeaderLeds';
-import Visor from '../components/camera/Visor';
-import TabsPanel from '../components/camera/TabsPanel';
-import ControlPanel from '../components/camera/ControlPanel';
-import LcdOverlay from '../components/camera/LcdOverlay';
-import ProfileModal from '../components/ProfileModal';
+import HeaderLeds from '../../components/camera/HeaderLeds';
+import Visor from '../../components/camera/Visor';
+import TabsPanel from '../../components/camera/TabsPanel';
+import ControlPanel from '../../components/camera/ControlPanel';
+import LcdOverlay from '../../components/camera/LcdOverlay';
+import ProfileModal from '../../components/ProfileModal';
 
 export default function CameraScreen() {
   return (
@@ -37,7 +37,7 @@ export default function CameraScreen() {
 }
 
 function MainCameraScreen() {
-  const [permission, requestPermission, getPermission] = useCameraPermissions();
+  const [permission, getPermission] = useCameraPermissions();
   const [appState, setAppState] = useState(AppState.currentState);
   const [photo, setPhoto] = useState<any>(null);
   const [result, setResult] = useState<AnalyzeResult | null>(null);
