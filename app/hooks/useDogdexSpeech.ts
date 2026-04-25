@@ -12,30 +12,32 @@ export function useDogdexSpeech() {
   useEffect(() => {
     (async () => {
       try {
-        // Find available voices
-        const availableVoices = await Speech.getAvailableVoicesAsync();
+        // Find available voices - this can fail on some Android devices/emulators
+        const availableVoices = await Speech.getAvailableVoicesAsync().catch(() => []);
         
-        // Filtrar vozes em Português
-        const ptVoices = availableVoices.filter(v => v.language.startsWith('pt'));
-        
-        // Tentar encontrar uma voz masculina conhecida
-        const maleVoice = ptVoices.find(v => 
-          v.name.toLowerCase().includes('male') || 
-          v.name.toLowerCase().includes('masculino') ||
-          v.name.toLowerCase().includes('daniel') || 
-          v.name.toLowerCase().includes('antonio') ||
-          v.identifier.toLowerCase().includes('ptd-local') || 
-          v.identifier.toLowerCase().includes('gfs-local')
-        );
+        if (availableVoices && availableVoices.length > 0) {
+          // Filtrar vozes em Português
+          const ptVoices = availableVoices.filter(v => v.language.startsWith('pt'));
+          
+          // Tentar encontrar uma voz masculina conhecida
+          const maleVoice = ptVoices.find(v => 
+            v.name.toLowerCase().includes('male') || 
+            v.name.toLowerCase().includes('masculino') ||
+            v.name.toLowerCase().includes('daniel') || 
+            v.name.toLowerCase().includes('antonio') ||
+            v.identifier.toLowerCase().includes('ptd-local') || 
+            v.identifier.toLowerCase().includes('gfs-local')
+          );
 
-        if (maleVoice) {
-          setSelectedVoice(maleVoice.identifier);
-        } else if (ptVoices.length > 0) {
-          setSelectedVoice(ptVoices[0].identifier);
+          if (maleVoice) {
+            setSelectedVoice(maleVoice.identifier);
+          } else if (ptVoices.length > 0) {
+            setSelectedVoice(ptVoices[0].identifier);
+          }
         }
-
       } catch (e) {
-        console.error('Failed to init speech', e);
+        // Fail silently or with a warning to avoid cluttering logs if it's a known environment limitation
+        console.warn('DogDex Speech: Could not load specific voices. Default voice will be used.');
       }
     })();
   }, []);

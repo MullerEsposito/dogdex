@@ -1,0 +1,185 @@
+import { StyleSheet, Platform } from 'react-native';
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#1A1D23',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  backButton: {
+    padding: 5,
+  },
+  title: {
+    color: '#FFF',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 2,
+  },
+  scrollContent: {
+    padding: 20,
+  },
+  label: {
+    color: '#AAA',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    marginTop: 10,
+    letterSpacing: 1,
+  },
+  typeSelector: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 20,
+  },
+  typeButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    backgroundColor: '#2A303A',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#383D47',
+    gap: 8,
+  },
+  typeButtonActive: {
+    backgroundColor: '#FA3045',
+    borderColor: '#FA3045',
+  },
+  typeButtonText: {
+    color: '#AAA',
+    fontWeight: 'bold',
+  },
+  typeButtonTextActive: {
+    color: '#FFF',
+  },
+  input: {
+    backgroundColor: '#2A303A',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#383D47',
+    color: '#FFF',
+    padding: 15,
+    fontSize: 16,
+    minHeight: 120,
+    marginBottom: 20,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 10,
+  },
+  contactField: {
+    flex: 1,
+  },
+  smallInput: {
+    backgroundColor: '#2A303A',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#383D47',
+    color: '#FFF',
+    padding: 12,
+    fontSize: 14,
+  },
+  imagePicker: {
+    backgroundColor: '#2A303A',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#383D47',
+    borderStyle: 'dashed',
+    height: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  imagePickerPlaceholder: {
+    alignItems: 'center',
+  },
+  imagePickerText: {
+    color: '#666',
+    marginTop: 10,
+    fontWeight: 'bold',
+  },
+  previewImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  removeImage: {
+    marginTop: 10,
+    alignSelf: 'flex-end',
+  },
+  removeImageText: {
+    color: '#FA3045',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  deviceInfoBox: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 20,
+    marginBottom: 30,
+    borderLeftWidth: 4,
+    borderLeftColor: '#FA3045',
+  },
+  deviceInfoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 5,
+  },
+  deviceInfoTitle: {
+    color: '#AAA',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  deviceInfoText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  deviceInfoSub: {
+    color: '#666',
+    fontSize: 10,
+  },
+  submitButton: {
+    backgroundColor: '#FA3045',
+    flexDirection: 'row',
+    paddingVertical: 18,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#FA3045',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+  },
+  submitButtonDisabled: {
+    backgroundColor: '#666',
+    shadowOpacity: 0,
+  },
+  submitButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+    letterSpacing: 1.5,
+  },
+  submitIcon: {
+    marginLeft: 8,
+  },
+  headerSpacer: {
+    width: 24,
+  }
+});

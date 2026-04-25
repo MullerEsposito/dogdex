@@ -1,27 +1,27 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useCameraPermissions } from 'expo-camera';
-import { Text, TouchableOpacity, Alert, Linking, View, StyleSheet, Platform, StatusBar } from 'react-native';
+import { useCameraPermissions, Camera } from 'expo-camera';
+import { Text, Alert, View, StyleSheet, Platform, StatusBar, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import * as Location from 'expo-location';
-import { analyzeDog } from '../services/api';
+import { analyzeDog } from '../../services/api';
 import { AnalyzeResult } from '@dogdex/shared';
-import { styles } from './CameraScreen.styles';
+import { styles } from './styles';
 import { CopilotProvider, useCopilot } from 'react-native-copilot';
 
 // Hooks
-import { useDogdexSounds } from '../hooks/useDogdexSounds';
-import { useDogdexStorage } from '../hooks/useDogdexStorage';
-import { useDogdexSpeech } from '../hooks/useDogdexSpeech';
-import { useAudio } from '../context/AudioContext';
+import { useDogdexSounds } from '../../hooks/useDogdexSounds';
+import { useDogdexStorage } from '../../hooks/useDogdexStorage';
+import { useDogdexSpeech } from '../../hooks/useDogdexSpeech';
+import { useAudio } from '../../context/AudioContext';
 
 // UI Components
-import HeaderLeds from '../components/camera/HeaderLeds';
-import Visor from '../components/camera/Visor';
-import TabsPanel from '../components/camera/TabsPanel';
-import ControlPanel from '../components/camera/ControlPanel';
-import LcdOverlay from '../components/camera/LcdOverlay';
-import ProfileModal from '../components/ProfileModal';
+import HeaderLeds from '../../components/camera/HeaderLeds';
+import Visor from '../../components/camera/Visor';
+import TabsPanel from '../../components/camera/TabsPanel';
+import ControlPanel from '../../components/camera/ControlPanel';
+import LcdOverlay from '../../components/camera/LcdOverlay';
+import ProfileModal from '../../components/ProfileModal';
 
 export default function CameraScreen() {
   return (
@@ -37,7 +37,8 @@ export default function CameraScreen() {
 }
 
 function MainCameraScreen() {
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission, getPermission] = useCameraPermissions();
+  const [appState, setAppState] = useState(AppState.currentState);
   const [photo, setPhoto] = useState<any>(null);
   const [result, setResult] = useState<AnalyzeResult | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -58,7 +59,26 @@ function MainCameraScreen() {
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0));
 
+  const handlePermissionCheck = async () => {
+    await Camera.requestCameraPermissionsAsync();
+    getPermission(); // Synchronize the hook state
+  };
+
   useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        handlePermissionCheck();
+      }
+      setAppState(nextAppState);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [appState]);
+
+  useEffect(() => {
+    handlePermissionCheck();
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       setLocationPermission(status === 'granted');
@@ -93,13 +113,15 @@ function MainCameraScreen() {
   useEffect(() => {
     (async () => {
       const completed = await hasCompletedTour();
-      if (!completed && permission?.granted) {
+      // Wait until both permissions have been resolved (prompts dismissed) to avoid blocking the Copilot modal
+      if (!completed && permission && permission.status !== 'undetermined' && locationPermission !== null) {
         setTimeout(() => {
+          resetCamera();
           start();
         }, 800);
       }
     })();
-  }, [permission?.granted]);
+  }, [permission?.status, locationPermission]);
 
   useEffect(() => {
     if (copilotEvents) {
@@ -217,20 +239,6 @@ function MainCameraScreen() {
 
   if (!permission) return <SafeAreaView style={styles.centered}><Text style={styles.message}>Carregando permissões...</Text></SafeAreaView>;
   
-  if (!permission.granted) {
-    return (
-      <SafeAreaView style={styles.centered}>
-        <Text style={styles.message}>
-          {permission.canAskAgain 
-            ? 'Precisamos de acesso à câmera para identificar cachorros'
-            : 'O acesso à câmera foi bloqueado. Por favor, libere a permissão nas Configurações.'}
-        </Text>
-        <TouchableOpacity style={styles.mainButton} onPress={permission.canAskAgain ? requestPermission : () => Linking.openSettings()}>
-          <Text style={styles.buttonText}>{permission.canAskAgain ? 'Permitir Acesso' : 'Abrir Configurações'}</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -264,7 +272,10 @@ function MainCameraScreen() {
           isCameraReady={isCameraReady} 
           isAudioEnabled={isAudioEnabled} 
           onToggleAudio={toggleAudio}
-          onStartTour={() => start()}
+          onStartTour={() => {
+            resetCamera();
+            start();
+          }}
           onOpenProfile={() => setIsProfileVisible(true)}
         />
       

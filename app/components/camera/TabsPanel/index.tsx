@@ -22,7 +22,7 @@ export default function TabsPanel() {
           <WalkthroughableTouchableOpacity 
             style={[styles.tabItem, styles.tabItemCenter]} 
             activeOpacity={0.7}
-            onPress={() => router.push('/dogdex')}
+            onPress={() => router.push('/dogdex' as any)}
           >
             <Text style={styles.tabText}>DOGDEX</Text>
           </WalkthroughableTouchableOpacity>
