@@ -1,15 +1,18 @@
 {
   "name": "dogdex-backend",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx --watch src/server.ts",
-    "build": "npx prisma generate ; tsc",
+    "dev": "dotenv -e .env.development -- tsx --watch src/server.ts",
+    "build": "dotenv -e .env.production -- npx prisma generate ; tsc",
     "start": "node dist/server.js",
-    "test": "jest --runInBand",
-    "test:auth": "jest --testPathPatterns=auth.integration",
-    "test:sync": "jest --testPathPatterns=sync.integration"
+    "test": "dotenv -e .env.development -- jest --runInBand",
+    "test:auth": "dotenv -e .env.development -- jest --testPathPatterns=auth.integration",
+    "test:sync": "dotenv -e .env.development -- jest --testPathPatterns=sync.integration",
+    "db:push": "dotenv -e .env.development -- prisma db push",
+    "db:studio": "dotenv -e .env.development -- prisma studio",
+    "db:clone": "tsx src/scripts/cloneDb.ts"
   },
   "keywords": [],
   "author": "",
@@ -50,6 +53,7 @@
     "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
     "better-sqlite3": "^12.9.0",
+    "dotenv-cli": "^11.0.0",
     "jest": "^30.3.0",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.9",

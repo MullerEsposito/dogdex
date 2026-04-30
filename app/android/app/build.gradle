@@ -81,31 +81,19 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
-def getPassword(String key) {
-    def envFile = rootProject.file("../.env")
-    if (envFile.exists()) {
-        def envProperties = new Properties()
-        envFile.withReader { reader -> envProperties.load(reader) }
-        if (envProperties.containsKey(key)) {
-            return envProperties.getProperty(key).replaceAll(/^['"]|['"]$/, "")
-        }
-    }
-    return System.getenv(key) ?: ''
-}
-
 android {
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.mulleresposito.dogdex'
+    namespace 'com.mulleresposito.dogdex.dev'
     defaultConfig {
-        applicationId 'com.mulleresposito.dogdex'
+        applicationId 'com.mulleresposito.dogdex.dev'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "0.3.0"
+        versionCode 6
+        versionName "0.4.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -116,19 +104,15 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
-        release {
-            storeFile file('dogdex-release.keystore')
-            storePassword getPassword('DOGDEX_STORE_PASS')
-            keyAlias getPassword('DOGDEX_KEY_ALIAS')
-            keyPassword getPassword('DOGDEX_KEY_PASS')
-        }
     }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.release
+            // Caution! In production, you need to generate your own keystore file.
+            // see https://reactnative.dev/docs/signed-apk-android.
+            signingConfig signingConfigs.debug
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds

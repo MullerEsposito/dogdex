@@ -8,7 +8,13 @@ module.exports = ({ config }) => {
       ...config.android,
       package: isDev 
         ? `${config.android.package}.dev` 
-        : config.android.package
+        : config.android.package,
+      config: {
+        ...config.android.config,
+        googleMaps: {
+          apiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY
+        }
+      }
     },
     ios: {
       ...config.ios,
@@ -18,7 +24,8 @@ module.exports = ({ config }) => {
     },
     plugins: [
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-audio"
     ],
     extra: {
       ...config.extra,

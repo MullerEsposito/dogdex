@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, Platform, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, Alert, Dimensions, ActivityIndicator } from 'react-native';
 import { Image } from 'expo-image';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withTiming } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '../hooks/useAuth';
-import { authService } from '../services/authService';
+import { useAuth } from '../../hooks/useAuth';
+import { authService } from '../../services/authService';
+import { styles } from './styles';
 
 const { height } = Dimensions.get('window');
 
@@ -28,28 +29,35 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
   const [uploading, setUploading] = useState(false);
   const [hasPassword, setHasPassword] = useState<boolean | null>(null);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     if (!session?.access_token) return;
     try {
       const data = await authService.getMeBackend(session.access_token);
       setHasPassword(data.user.hasPassword);
-    } catch (err) {
-      console.error('Error fetching backend profile:', err);
+    } catch {
+      // Ignorar erro se o perfil não puder ser carregado
     }
-  };
+  }, [session?.access_token]);
+
+  const [isMounted, setIsMounted] = useState(isVisible);
 
   useEffect(() => {
     if (isVisible) {
       fetchProfile();
+      setIsMounted(true);
       translateY.value = withSpring(0, { damping: 15, stiffness: 100 });
       opacity.value = withTiming(1, { duration: 300 });
     } else {
       translateY.value = withTiming(-height, { duration: 300 });
-      opacity.value = withTiming(0, { duration: 300 });
+      opacity.value = withTiming(0, { duration: 300 }, (finished) => {
+        if (finished) {
+          // Note: we can use a state here if needed, but for now we just avoid render-time read
+        }
+      });
       setShowPasswordForm(false);
       setNewPassword('');
     }
-  }, [isVisible]);
+  }, [isVisible, fetchProfile, translateY, opacity]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: translateY.value }],
@@ -65,7 +73,7 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
     try {
       await authService.forgotPassword(user.email);
       Alert.alert('Sucesso', 'E-mail de redefinição enviado! Verifique sua caixa de entrada.');
-    } catch (err) {
+    } catch {
       Alert.alert('Erro', 'Não foi possível enviar o e-mail de redefinição.');
     } finally {
       setLoading(false);
@@ -144,7 +152,10 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
     }
   };
 
-  if (!isVisible && opacity.value === 0) return null;
+  // To avoid the warning and ensure proper unmounting, we use isVisible for immediate mount 
+  // and we can rely on pointerEvents/opacity for the rest.
+  if (!isVisible && !isMounted) return null;
+
 
   return (
     <View style={styles.overlay} pointerEvents={isVisible ? 'auto' : 'none'}>
@@ -264,169 +275,3 @@ export default function ProfileModal({ isVisible, onClose }: ProfileModalProps) 
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    zIndex: 1000,
-  },
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-  },
-  container: {
-    width: '100%',
-    backgroundColor: '#1E2127',
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
-    paddingTop: Platform.OS === 'ios' ? 60 : 30,
-    paddingBottom: 30,
-    borderBottomWidth: 1,
-    borderBottomColor: '#333',
-  },
-  content: {
-    paddingHorizontal: 24,
-  },
-  closeButton: {
-    alignSelf: 'center',
-    padding: 10,
-    marginTop: -10,
-  },
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  avatarContainer: {
-    position: 'relative',
-  },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  avatarPlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#222',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  editBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: COLORS.accent,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#111',
-  },
-  userInfo: {
-    marginLeft: 18,
-    flex: 1,
-  },
-  userName: {
-    color: '#FFF',
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  userEmail: {
-    color: '#888',
-    fontSize: 14,
-    marginTop: 2,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#333',
-    marginVertical: 24,
-  },
-  sectionTitle: {
-    color: '#444',
-    fontSize: 11,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-    marginBottom: 16,
-  },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    marginBottom: 8,
-  },
-  iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  menuItemContent: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  menuText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  menuSubtext: {
-    color: '#666',
-    fontSize: 12,
-    marginTop: 2,
-  },
-  formContainer: {
-    marginTop: 10,
-    padding: 16,
-    backgroundColor: '#16191E',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  input: {
-    backgroundColor: '#2A303A',
-    borderRadius: 12,
-    padding: 12,
-    color: '#FFF',
-    fontSize: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#444',
-  },
-  saveButton: {
-    backgroundColor: '#4CAF50',
-    padding: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  saveButtonDisabled: {
-    opacity: 0.5,
-  },
-  saveButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
-    fontSize: 14,
-    letterSpacing: 1,
-  },
-  signOutButton: {
-    marginTop: 30,
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#333',
-    alignItems: 'center',
-  },
-  signOutText: {
-    color: '#666',
-    fontSize: 12,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-  }
-});

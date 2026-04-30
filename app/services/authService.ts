@@ -215,7 +215,7 @@ export const authService = {
 
     // 2. Faz o upload para o novo bucket 'avatars'
     console.log('[AuthService] updateAvatar - Enviando para Supabase Storage...');
-    const { data, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(filePath, arrayBuffer, {
         contentType: `image/${fileExt === 'jpg' ? 'jpeg' : fileExt}`,

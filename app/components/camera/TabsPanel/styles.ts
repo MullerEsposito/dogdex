@@ -1,7 +1,6 @@
-import { StyleSheet, Dimensions } from 'react-native';
-import { POKEDEX_RED, DARK_RED, BORDER_DARK, LENS_BLUE_IDLE, LENS_GREEN_SUCCESS, LENS_RED_ERROR, LENS_YELLOW_LOADING, LCD_GREEN, LCD_DARK } from '../../../screens/CameraScreen.styles';
+import { StyleSheet } from 'react-native';
 
-const { width } = Dimensions.get('window');
+
 
 export const styles = StyleSheet.create({
   // --- BOTTOM TABS PANEL ---
@@ -54,8 +53,8 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tabIndicator: {
-    width: 60, 
-    height: 3, 
+    width: 60,
+    height: 3,
     backgroundColor: '#00FFFF',
     borderRadius: 3,
     shadowColor: '#00FFFF',

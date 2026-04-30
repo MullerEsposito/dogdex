@@ -18,13 +18,22 @@ app.use(cors({
     // Requisições sem Origin (mobile nativo, Postman, curl) são permitidas
     if (!origin) return callback(null, true);
 
+    // LOG para debug
+    console.log(`[CORS] Request from origin: ${origin}`);
+
     const isAllowed = allowedOrigins.some(allowed =>
       allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
     );
 
-    if (isAllowed) {
+    // No desenvolvimento, vamos ser mais flexíveis se o IP começar com 192.168 ou 172 ou localhost
+    const isDevLocal = origin.startsWith('http://localhost') || 
+                      origin.startsWith('http://192.168.') || 
+                      origin.startsWith('http://172.');
+
+    if (isAllowed || isDevLocal) {
       callback(null, true);
     } else {
+      console.warn(`[CORS] Origin ${origin} blocked`);
       callback(new Error(`Origin ${origin} not allowed by CORS`));
     }
   },

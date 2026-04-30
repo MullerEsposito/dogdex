@@ -1,6 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { documentDirectory, copyAsync, deleteAsync } from 'expo-file-system/legacy';
-import { Alert } from 'react-native';
 import { AnalyzeResult } from '@dogdex/shared';
 import { useAuth } from './useAuth';
 import { syncService } from '../services/syncService';

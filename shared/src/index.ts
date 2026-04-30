@@ -37,6 +37,34 @@ export interface AnalyzeResult {
   error?: string;
 }
 
+export interface AdoptionDog {
+  id: string;
+  name: string;
+  breedName: string;
+  age?: string;
+  description?: string;
+  imageUri: string;
+  status: 'available' | 'adopted';
+  adoptionPointId: string;
+  creatorId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdoptionPoint {
+  id: string;
+  name: string;
+  description?: string;
+  latitude: number;
+  longitude: number;
+  address?: string;
+  contactPhone?: string;
+  creatorId: string;
+  dogs?: AdoptionDog[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const DOG_BREEDS = [
   'affenpinscher',
   'afghan hound',

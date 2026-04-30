@@ -1,5 +1,7 @@
+/* global __dirname */
 const fs = require('fs');
 const path = require('path');
+const { Buffer } = require('buffer');
 
 function createWav(filename, samples, sampleRate = 44100) {
   const numChannels = 1;

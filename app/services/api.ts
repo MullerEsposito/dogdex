@@ -22,7 +22,7 @@ const getBaseUrl = () => {
   }
 
   // 4. Fallback final para qualquer plataforma
-  return 'http://localhost:3000';
+  return Platform.OS === 'android' ? 'http://10.0.2.2:3000' : 'http://localhost:3000';
 };
 
 export const BASE_URL = getBaseUrl();

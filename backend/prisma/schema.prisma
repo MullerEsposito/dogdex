@@ -7,7 +7,7 @@ generator client {
 
 // We use Supabase Postgres for production and development.
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
 }
 
 model User {
@@ -21,6 +21,10 @@ model User {
   resetToken         String?    @unique
   resetTokenExpires  DateTime?
   entries            DogEntry[]
+  adoptionPoints     AdoptionPoint[] @relation("PointCreator")
+  adopterChatSessions ChatSession[]  @relation("AdopterChatSessions")
+  creatorChatSessions ChatSession[]  @relation("CreatorChatSessions")
+  messages           Message[]
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
 }
@@ -38,3 +42,61 @@ model DogEntry {
   user         User     @relation(fields: [userId], references: [id])
   createdAt    DateTime @default(now())
 }
+
+model AdoptionPoint {
+  id           String        @id @default(uuid())
+  name         String
+  description  String?
+  latitude     Float
+  longitude    Float
+  address      String?
+  contactPhone String?       // New field for WhatsApp contact
+  creatorId    String
+  creator      User          @relation("PointCreator", fields: [creatorId], references: [id])
+  dogs         AdoptionDog[]
+  chatSessions ChatSession[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model AdoptionDog {
+  id              String        @id @default(uuid())
+  name            String
+  breedName       String
+  age             String?
+  description     String?
+  imageUri        String
+  status          String        @default("available") // e.g., "available", "adopted"
+  adoptionPointId String
+  adoptionPoint   AdoptionPoint @relation(fields: [adoptionPointId], references: [id])
+  creatorId       String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
+
+model ChatSession {
+  id              String        @id @default(uuid())
+  adopterId       String
+  adopter         User          @relation("AdopterChatSessions", fields: [adopterId], references: [id])
+  creatorId       String
+  creator         User          @relation("CreatorChatSessions", fields: [creatorId], references: [id])
+  adoptionPointId String
+  adoptionPoint   AdoptionPoint @relation(fields: [adoptionPointId], references: [id])
+  messages        Message[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@unique([adopterId, adoptionPointId])
+}
+
+model Message {
+  id            String      @id @default(uuid())
+  sessionId     String
+  session       ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  senderId      String
+  sender        User        @relation(fields: [senderId], references: [id])
+  content       String
+  isRead        Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+}
+

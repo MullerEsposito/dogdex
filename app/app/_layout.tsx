@@ -4,6 +4,9 @@ import { AudioProvider } from '../context/AudioContext';
 import { AuthProvider } from '../context/AuthContext';
 import { useAuth } from '../hooks/useAuth';
 
+import { useUpdateCheck } from '../hooks/useUpdateCheck';
+import UpdateModal from '../components/UpdateModal';
+
 function InitialLayout() {
   const { user, loading } = useAuth();
   const segments = useSegments();
@@ -16,21 +19,41 @@ function InitialLayout() {
 
     if (!user && !inAuthGroup) {
       // Redirect to the login page if not authenticated
-      router.replace('/auth');
+      router.replace('/auth' as any);
     } else if (user && inAuthGroup) {
       // Redirect away from the login page if already authenticated
       router.replace('/');
     }
-  }, [user, segments, loading]);
+  }, [user, segments, loading, router]);
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="create-point" options={{ presentation: 'modal' }} />
+    </Stack>
+  );
 }
 
 export default function RootLayout() {
+  const { 
+    showModal, 
+    isForceUpdate, 
+    updateInfo, 
+    handleUpdate, 
+    handleDismiss 
+  } = useUpdateCheck();
+
   return (
     <AuthProvider>
       <AudioProvider>
         <InitialLayout />
+        <UpdateModal 
+          isVisible={showModal}
+          isForceUpdate={isForceUpdate}
+          latestVersion={updateInfo?.latestVersion || ''}
+          releaseNotes={updateInfo?.releaseNotes}
+          onUpdate={handleUpdate}
+          onDismiss={handleDismiss}
+        />
       </AudioProvider>
     </AuthProvider>
   );

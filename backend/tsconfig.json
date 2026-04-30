@@ -9,6 +9,7 @@
     "strict": true,
     "skipLibCheck": true,
     "baseUrl": ".",
+    "resolveJsonModule": true,
     "paths": {
       "@dogdex/shared": ["./src/shared/src/index.ts"]
     },

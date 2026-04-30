@@ -1,5 +1,5 @@
 import { StyleSheet } from 'react-native';
-import { LCD_GREEN, LCD_DARK } from '../../../screens/CameraScreen.styles';
+import { LCD_GREEN, LCD_DARK } from '../../../screens/CameraScreen/styles';
 
 export const styles = StyleSheet.create({
   // --- LCD RESULT STRIP OVERLAY ---

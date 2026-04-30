@@ -11,7 +11,7 @@ import { Pool } from 'pg';
  */
 export function createPrismaClient(url?: string) {
   const isTest = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
-  const connectionString = url || process.env.DATABASE_URL;
+  const connectionString = url || process.env.DIRECT_URL || process.env.DATABASE_URL;
 
   if (isTest) {
     // Importação dinâmica síncrona (ok para testes)
