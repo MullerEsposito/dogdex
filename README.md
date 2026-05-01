@@ -1,5 +1,5 @@
 # DogDex 🐾
-![version](https://img.shields.io/badge/version-0.3.0-blue.svg) ![expo](https://img.shields.io/badge/expo-SDK_55-black.svg) ![tensorflow](https://img.shields.io/badge/tensorflow-JS-orange.svg)
+![version](https://img.shields.io/badge/version-0.4.0-blue.svg) ![expo](https://img.shields.io/badge/expo-SDK_55-black.svg) ![tensorflow](https://img.shields.io/badge/tensorflow-JS-orange.svg)
 
 DogDex é um ecossistema inteligente projetado para identificar raças de cachorros com extrema precisão usando o modelo de Deep Learning **EfficientNetB0**. Com um design de hardware nostálgico e tátil inspirado nos clássicos _Scanners_ (Pokedex), o app oferece uma experiência audiovisual rica para capturar e mapear informações sobre o seu pet.
 
@@ -7,10 +7,12 @@ DogDex é um ecossistema inteligente projetado para identificar raças de cachor
 
 https://github.com/user-attachments/assets/ba0bfbfe-5c0b-4ed6-8766-26c82e2cbef6
 
-## ✨ Principais Funcionalidades
+- **Mapa de Adoção Interativo**: Visualize pontos de adoção, abrigos e cães resgatados em tempo real diretamente no mapa.
+- **Ciclo de Vida de Adoção**: Sistema completo para gerenciar o status de resgate e acolhimento de pets diretamente pelo mapa.
+- **Chat em Tempo Real**: Conecte-se instantaneamente com protetores e adotantes através de um sistema de mensagens nativo com notificações de leitura.
 - **Design de Scanner Físico:** Interface com botões táteis, molduras em relevo 3D e um background nativo com gradiente radial.
 - **Efeitos Sonoros Nativos:** O app agora responde às interações graças aos bindings do `expo-av`.
-- **Sincronização em Nuvem (Cloud Sync)**: Sistema robusto de sincronização que mantém seu histórico DogDex seguro no Supabase, com suporte a deduplicação inteligente e "soft delete".
+- **Sincronização em Nuvem (Cloud Sync)**: Sistema robusto de sincronização que mantém seu histórico DogDex seguro no Supabase.
 - **Autenticação Híbrida**: Suporte a login social (Google) e login tradicional por e-mail/senha.
 - **Perfil de Usuário**: Gerenciamento de avatar (via `expo-image`) e dados pessoais.
 - **Display LDC Interativo:** Feed da câmera e diagnósticos do Scanner em tempo real.
@@ -110,6 +112,28 @@ O DogDex utiliza uma camada de persistência em nuvem altamente resiliente:
 - **Persistência Local**: O app utiliza um hook customizado `useDogdexStorage` que gerencia o estado local de forma ultra-rápida.
 - **Sync Automático**: Ao detectar conexão, o app sincroniza itens locais com o Supabase usando uma estratégia de "Update or Insert" baseada em `localId`.
 - **Soft Delete**: Registros deletados localmente recebem um status `deleted` que é propagado para a nuvem, garantindo que itens excluídos não "ressuscitem" em outros dispositivos.
+
+---
+
+## 📍 Mapa e Ciclo de Vida de Adoção
+
+A principal novidade da v0.4.0 é o ecossistema de proteção animal integrado ao mapa:
+
+### 🐕 Pontos de Adoção (POI)
+O mapa é alimentado dinamicamente por pontos de interesse que representam cães em busca de um lar, permitindo a localização visual de abrigos e pontos de resgate.
+
+### 🔄 Fluxo de Adoção (Lifecycle)
+Cada pet no mapa possui um ciclo de vida gerenciável:
+1. **Resgatado**: O pet foi encontrado e está em um abrigo temporário.
+2. **Disponível**: O pet passou por triagem e está pronto para adoção.
+3. **Em Processo**: Existe um interessado e o chat entre as partes foi iniciado.
+4. **Adotado**: O ciclo se encerra e o pet sai do mapa público para o histórico de finais felizes.
+
+### 💬 Mensageria Integrada
+Ao selecionar um pet no mapa, você pode iniciar um chat instantâneo com o protetor responsável. O sistema gerencia:
+- Confirmação de leitura (Unread counts).
+- Histórico de mensagens persistente no Supabase.
+- Sincronização em tempo real via WebSockets.
 
 ---
 
