@@ -21,12 +21,19 @@ export interface DogdexEntry {
   localId?: string;
 }
 
-const STORAGE_KEY = '@dogdex_history';
-const TOUR_COMPLETED_KEY = '@dogdex_tour_completed';
-
 export function useDogdexStorage() {
   const { session } = useAuth();
   const token = session?.access_token;
+
+  // Isola o storage local entre Dev e Prod usando o ID do App como critério
+  const envSuffix = useMemo(() => {
+    // No Android nativo (APK), pegamos o ID real. No Expo Go, usamos o valor do config.
+    const appId = Constants.expoConfig?.android?.package || '';
+    return appId.endsWith('.dev') ? '_dev' : '_prod';
+  }, []);
+
+  const STORAGE_KEY = `@dogdex_history${envSuffix}`;
+  const TOUR_COMPLETED_KEY = `@dogdex_tour_completed${envSuffix}`;
 
   const uploadImage = useCallback(async (uri: string, filename: string): Promise<string | null> => {
     try {
@@ -162,11 +169,9 @@ export function useDogdexStorage() {
       if (entryToDelete.status === 'synced') {
         // Marca como apagado para sincronizar, mas remove da visualização
         updated = existing.map(e => e.id === id ? { ...e, status: 'deleted' } : e);
-        console.log('🗑️ [STORAGE] Item marcado para exclusão via sincronização');
       } else {
         // Remove itens locais imediatamente
         updated = existing.filter(e => e.id !== id);
-        console.log('🗑️ [STORAGE] Item local removido diretamente');
       }
 
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
@@ -209,20 +214,8 @@ export function useDogdexStorage() {
   };
 
 
-   const syncWithCloud = useCallback(async (): Promise<{ pulled: number, pushed: number }> => {
-    console.log('🔄 [STORAGE] Starting cloud sync...');
-    
-    // DEBUG: Listar arquivos locais para ver se as fotos existem
-    try {
-      const docs = await FileSystem.readDirectoryAsync(FileSystem.documentDirectory!);
-      console.log('📂 [DEBUG] Arquivos na pasta de documentos:', docs.length);
-      console.log('📂 [DEBUG] Lista:', docs.join(', '));
-    } catch (e) {
-      console.log('📂 [DEBUG] Erro ao ler pasta de documentos:', e);
-    }
-
+  const syncWithCloud = useCallback(async (): Promise<{ pulled: number, pushed: number }> => {
     if (!token) {
-      console.log('🔄 [STORAGE] Sync aborted: No auth token found');
       return { pulled: 0, pushed: 0 };
     }
     
@@ -231,23 +224,16 @@ export function useDogdexStorage() {
       const localStr = await AsyncStorage.getItem(STORAGE_KEY);
       let local: DogdexEntry[] = localStr ? JSON.parse(localStr) : [];
       
-      console.log(`🔄 [STORAGE] Local entries count: ${local.length}`);
-      
-      // 2. Envia mudanças locais primeiro (importante para exclusões)
-      // FILTRO CRÍTICO: Só enviamos o que não foi sincronizado E que não está deletado
+      // 2. Envia mudanças locais primeiro
       const pending = local.filter(e => e.status !== 'synced' && e.status !== 'deleted');
-      console.log(`🔄 [STORAGE] Pending push count (excluding deleted): ${pending.length}`);
       
-      // Separamos os itens marcados para deleção para enviar o comando de delete para o backend
+      // Itens para deletar
       const toDelete = local.filter(e => e.status === 'deleted');
       if (toDelete.length > 0) {
-        console.log(`🗑️ [STORAGE] Notificando backend sobre ${toDelete.length} exclusões...`);
         await syncService.push(token, toDelete);
       }
       
       if (pending.length > 0) {
-        console.log('🚀 [STORAGE] Enviando novos itens para a nuvem:', pending.map(p => p.breedName).join(', '));
-        // Para cada item pendente, tentamos fazer upload da imagem se for local
         const entriesWithUploadedImages = await Promise.all(pending.map(async (e) => {
           if (e.imageUri.startsWith('file://')) {
             const filename = e.imageUri.split('/').pop() || `dogdex_${Date.now()}.jpg`;
@@ -261,17 +247,14 @@ export function useDogdexStorage() {
 
         await syncService.push(token, entriesWithUploadedImages);
         
-        // Atualiza o status local para synced para esses itens
         entriesWithUploadedImages.forEach(e => {
           const idx = local.findIndex(l => l.id === e.id);
           if (idx !== -1) local[idx].status = 'synced';
         });
       }
 
-      // 3. Agora baixa o estado atualizado da nuvem
-      console.log('🔄 [STORAGE] Pulling from cloud...');
+      // 3. Baixa da nuvem
       const cloudEntries = await syncService.pull(token);
-      console.log(`🔄 [STORAGE] Pulled ${cloudEntries.length} entries from cloud`);
       
       const extra = Constants.expoConfig?.extra;
       const supabaseUrl = extra?.supabaseUrl;
@@ -279,38 +262,23 @@ export function useDogdexStorage() {
 
       // 4. Mescla as entradas
       const mergedMap = new Map<string, DogdexEntry>();
-      
-      // Add local first
       local.forEach(e => mergedMap.set(e.id, { ...e, status: e.status || 'local' }));
       
-      // Add cloud entries
       for (const ce of cloudEntries) {
         const existing = mergedMap.get(ce.id);
-        
-        // PRIORIDADE ABSOLUTA: Se o item já existe localmente e está marcado como 'deleted',
-        // nós JAMAIS o sobrescrevemos com dados da nuvem.
-        if (existing?.status === 'deleted') {
-          console.log(`🚫 [STORAGE] Mantendo exclusão local para ${ce.id}`);
-          continue;
-        }
+        if (existing?.status === 'deleted') continue;
 
-        // Resolve Image URL
         let finalUri = ce.imageUri;
         let needsUpload = false;
         
-        // Se a URI salva na nuvem for um caminho absoluto local, tentamos recuperar.
         if (ce.imageUri && ce.imageUri.startsWith('file:///')) {
           const fileName = ce.imageUri.split('/').pop();
           finalUri = fileName || ce.imageUri;
 
-          // Se o arquivo existir NESTE dispositivo, marcamos que precisa de upload
           const fileInfo = await FileSystem.getInfoAsync(ce.imageUri);
-          if (fileInfo.exists) {
-            needsUpload = true;
-          }
+          if (fileInfo.exists) needsUpload = true;
         }
 
-        // Se não for uma URL absoluta (http), montamos a URL do Supabase
         if (finalUri && !finalUri.startsWith('http') && !finalUri.startsWith('file://') && supabaseUrl) {
           finalUri = `${supabaseUrl}/storage/v1/object/public/${bucket}/${finalUri}`;
         }
@@ -318,19 +286,12 @@ export function useDogdexStorage() {
         const resolvedUri = existing?.imageUri?.startsWith('file://') ? existing.imageUri : finalUri;
         
         if (needsUpload && resolvedUri.startsWith('file://')) {
-          console.log(`🚀 [STORAGE] Corrigindo item ${ce.id}: Subindo foto local para a nuvem...`);
           const fileName = resolvedUri.split('/').pop() || `dogdex_${ce.id}.jpg`;
           const uploadedPath = await uploadImage(resolvedUri, fileName);
           if (uploadedPath) {
-             // Atualiza o registro na nuvem imediatamente via push
              await syncService.push(token, [{ ...ce, imageUri: uploadedPath, status: 'synced' }]);
-             console.log(`✅ [STORAGE] Foto do item ${ce.id} salva na nuvem com sucesso!`);
           }
         }
-
-        console.log(`🖼️ [STORAGE] Syncing item ${ce.id}:`);
-        console.log(`   - Original cloud URI: ${ce.imageUri}`);
-        console.log(`   - Resolved local/cloud URI: ${resolvedUri}`);
 
         mergedMap.set(ce.id, {
           ...ce,
@@ -343,19 +304,15 @@ export function useDogdexStorage() {
         (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
 
-      // Limpeza final: remove entradas locais que já foram sincronizadas como 'deleted'
       const finalSyncResults = merged.filter(e => e.status !== 'deleted');
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(finalSyncResults));
       
-      return { 
-        pulled: cloudEntries.length, 
-        pushed: pending.length 
-      };
+      return { pulled: cloudEntries.length, pushed: pending.length };
     } catch (error) {
       console.error('Sync failed:', error);
       throw error;
     }
-  }, [token]);
+  }, [token, uploadImage]);
 
   return useMemo(() => ({ 
     saveEntry, 
