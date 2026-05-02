@@ -1,27 +1,27 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { useCameraPermissions } from 'expo-camera';
-import { Text, TouchableOpacity, Alert, Linking, View, StyleSheet, Platform, StatusBar } from 'react-native';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import { useCameraPermissions, Camera } from 'expo-camera';
+import { Text, Alert, View, StyleSheet, Platform, StatusBar, AppState } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import * as Location from 'expo-location';
-import { analyzeDog } from '../services/api';
+import { analyzeDog } from '../../services/api';
 import { AnalyzeResult } from '@dogdex/shared';
-import { styles } from './CameraScreen.styles';
+import { styles } from './styles';
 import { CopilotProvider, useCopilot } from 'react-native-copilot';
 
 // Hooks
-import { useDogdexSounds } from '../hooks/useDogdexSounds';
-import { useDogdexStorage } from '../hooks/useDogdexStorage';
-import { useDogdexSpeech } from '../hooks/useDogdexSpeech';
-import { useAudio } from '../context/AudioContext';
+import { useDogdexSounds } from '../../hooks/useDogdexSounds';
+import { useDogdexStorage } from '../../hooks/useDogdexStorage';
+import { useDogdexSpeech } from '../../hooks/useDogdexSpeech';
+import { useAudio } from '../../context/AudioContext';
 
 // UI Components
-import HeaderLeds from '../components/camera/HeaderLeds';
-import Visor from '../components/camera/Visor';
-import TabsPanel from '../components/camera/TabsPanel';
-import ControlPanel from '../components/camera/ControlPanel';
-import LcdOverlay from '../components/camera/LcdOverlay';
-import ProfileModal from '../components/ProfileModal';
+import HeaderLeds from '../../components/camera/HeaderLeds';
+import Visor from '../../components/camera/Visor';
+import TabsPanel from '../../components/camera/TabsPanel';
+import ControlPanel from '../../components/camera/ControlPanel';
+import LcdOverlay from '../../components/camera/LcdOverlay';
+import ProfileModal from '../../components/ProfileModal';
 
 export default function CameraScreen() {
   return (
@@ -37,7 +37,8 @@ export default function CameraScreen() {
 }
 
 function MainCameraScreen() {
-  const [permission, requestPermission] = useCameraPermissions();
+  const [permission, getPermission] = useCameraPermissions();
+  const [appState, setAppState] = useState(AppState.currentState);
   const [photo, setPhoto] = useState<any>(null);
   const [result, setResult] = useState<AnalyzeResult | null>(null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -46,6 +47,7 @@ function MainCameraScreen() {
   const [zoom, setZoom] = useState(0);
   const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
   const [isProfileVisible, setIsProfileVisible] = useState(false);
+  const [hasStartedTour, setHasStartedTour] = useState(false); // New state to prevent loops
   const cameraRef = useRef<any>(null);
 
   const { playSound, stopLoadingSound } = useDogdexSounds();
@@ -58,14 +60,7 @@ function MainCameraScreen() {
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.1, 1));
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0));
 
-  useEffect(() => {
-    (async () => {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      setLocationPermission(status === 'granted');
-    })();
-  }, []);
-
-  const toggleCamera = () => {
+  const toggleCamera = useCallback(() => {
     setIsCameraActive(prev => {
       const next = !prev;
       if (next) playSound('powerOn');
@@ -73,48 +68,11 @@ function MainCameraScreen() {
       return next;
     });
     setIsCameraReady(false);
-  };
-
-  useEffect(() => {
-    if (status === 'loading') {
-      playSound('loading');
-    } else {
-      stopLoadingSound();
-      if (status === 'success') {
-        playSound('success');
-        speakAnalyzeResult(result);
-      } else if (status === 'error') {
-        playSound('error');
-        speakAnalyzeResult(result);
-      }
-    }
-  }, [status, result]);
-
-  useEffect(() => {
-    (async () => {
-      const completed = await hasCompletedTour();
-      if (!completed && permission?.granted) {
-        setTimeout(() => {
-          start();
-        }, 800);
-      }
-    })();
-  }, [permission?.granted]);
-
-  useEffect(() => {
-    if (copilotEvents) {
-      copilotEvents.on('stop', () => {
-        completeTour();
-      });
-      return () => {
-        copilotEvents.off('stop');
-      };
-    }
-  }, [copilotEvents]);
+  }, [playSound]);
 
   const MIN_CONFIDENCE = 0.5; // 50% threshold
 
-  const handleAnalyze = async (photoUri: string) => {
+  const handleAnalyze = useCallback(async (photoUri: string) => {
     setStatus('loading');
     try {
       const analyzeResponse = await analyzeDog(photoUri);
@@ -127,19 +85,19 @@ function MainCameraScreen() {
 
       setResult(analyzeResponse);
       setStatus(analyzeResponse.error ? 'error' : 'success');
-    } catch (error: any) {
+    } catch {
       setResult({ error: 'Erro ao conectar com o servidor' } as any);
       setStatus('error');
     }
-  };
+  }, []);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     if (photo && photo.uri) {
       handleAnalyze(photo.uri);
     }
-  };
+  }, [photo, handleAnalyze]);
 
-  const takePicture = async () => {
+  const takePicture = useCallback(async () => {
     if (status === 'loading') return;
     
     if (cameraRef.current && isCameraReady) {
@@ -161,16 +119,16 @@ function MainCameraScreen() {
     } else {
       Alert.alert('Aguarde', 'A câmera ainda está carregando...');
     }
-  };
+  }, [status, isCameraReady, handleAnalyze]);
 
-  const resetCamera = () => {
+  const resetCamera = useCallback(() => {
     stopSpeech();
     setPhoto(null);
     setResult(null);
     setStatus('idle');
-  };
+  }, [stopSpeech]);
 
-  const handleAddData = async () => {
+  const handleAddData = useCallback(async () => {
     if (!photo || !result || status !== 'success') {
       Alert.alert('Erro', 'Realize primeiro um escaneamento bem-sucedido.');
       return;
@@ -213,24 +171,87 @@ function MainCameraScreen() {
       console.error('Save error:', error);
       Alert.alert('Erro', 'Não foi possível salvar os dados do scanner.');
     }
-  };
+  }, [photo, result, status, locationPermission, saveEntry, resetCamera]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (appState.match(/inactive|background/) && nextAppState === 'active') {
+        // Only CHECK permission status — never REQUEST (which opens a dialog and causes a loop)
+        getPermission();
+      }
+      setAppState(nextAppState);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [appState, getPermission]);
+
+  useEffect(() => {
+    const requestPermissions = async () => {
+      // Request camera first
+      await Camera.requestCameraPermissionsAsync();
+      getPermission(); // Sync hook state
+
+      // Request location second (not in parallel to avoid system dialog overlap)
+      const locStatus = await Location.requestForegroundPermissionsAsync();
+      setLocationPermission(locStatus.status === 'granted');
+    };
+
+    requestPermissions();
+  }, [getPermission]);
+
+  const lastStatusHandled = useRef<string>('idle');
+
+  useEffect(() => {
+    // Só dispara se o status mudou para evitar loops infinitos de áudio
+    if (lastStatusHandled.current === status) return;
+    
+    if (status === 'loading') {
+      playSound('loading');
+    } else {
+      stopLoadingSound();
+      if (status === 'success') {
+        playSound('success');
+        speakAnalyzeResult(result);
+      } else if (status === 'error') {
+        playSound('error');
+        speakAnalyzeResult(result);
+      }
+    }
+    
+    lastStatusHandled.current = status;
+  }, [status, result, playSound, stopLoadingSound, speakAnalyzeResult]);
+
+  useEffect(() => {
+    if (hasStartedTour) return; // Don't start again if already started
+
+    (async () => {
+      const completed = await hasCompletedTour();
+      // Wait until both permissions have been resolved (prompts dismissed) to avoid blocking the Copilot modal
+      if (!completed && permission?.status === 'granted' && locationPermission !== null) {
+        setHasStartedTour(true);
+        setTimeout(() => {
+          resetCamera();
+          start();
+        }, 1000);
+      }
+    })();
+  }, [permission?.status, locationPermission, hasStartedTour, hasCompletedTour, resetCamera, start]);
+
+  useEffect(() => {
+    if (copilotEvents) {
+      copilotEvents.on('stop', () => {
+        completeTour();
+      });
+      return () => {
+        copilotEvents.off('stop');
+      };
+    }
+  }, [copilotEvents, completeTour]);
 
   if (!permission) return <SafeAreaView style={styles.centered}><Text style={styles.message}>Carregando permissões...</Text></SafeAreaView>;
   
-  if (!permission.granted) {
-    return (
-      <SafeAreaView style={styles.centered}>
-        <Text style={styles.message}>
-          {permission.canAskAgain 
-            ? 'Precisamos de acesso à câmera para identificar cachorros'
-            : 'O acesso à câmera foi bloqueado. Por favor, libere a permissão nas Configurações.'}
-        </Text>
-        <TouchableOpacity style={styles.mainButton} onPress={permission.canAskAgain ? requestPermission : () => Linking.openSettings()}>
-          <Text style={styles.buttonText}>{permission.canAskAgain ? 'Permitir Acesso' : 'Abrir Configurações'}</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -264,7 +285,10 @@ function MainCameraScreen() {
           isCameraReady={isCameraReady} 
           isAudioEnabled={isAudioEnabled} 
           onToggleAudio={toggleAudio}
-          onStartTour={() => start()}
+          onStartTour={() => {
+            resetCamera();
+            start();
+          }}
           onOpenProfile={() => setIsProfileVisible(true)}
         />
       

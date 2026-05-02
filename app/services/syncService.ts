@@ -4,9 +4,13 @@ import { BASE_URL } from './api';
 
 export const syncService = {
   async push(token: string, entries: DogdexEntry[]) {
-    // We send the entries to the backend. 
-    // The backend handles saving/updating and linking to the user.
-    const response = await axios.post(`${BASE_URL}/sync/push`, { entries }, {
+    // Limpa caminhos locais antes de enviar para o banco
+    const sanitizedEntries = entries.map(e => ({
+      ...e,
+      imageUri: e.imageUri.startsWith('file://') ? e.imageUri.split('/').pop() : e.imageUri
+    }));
+
+    const response = await axios.post(`${BASE_URL}/sync/push`, { entries: sanitizedEntries }, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

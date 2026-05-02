@@ -1,59 +1,58 @@
-import { useEffect, useRef } from 'react';
-import { Audio } from 'expo-av';
+import { useCallback, useRef } from 'react';
+import { useAudioPlayer } from 'expo-audio';
 import { useAudio } from '../context/AudioContext';
+
+// Sound sources map
+const SOUND_SOURCES: Record<string, any> = {
+  powerOn: require('../assets/sounds/power_on.wav'),
+  powerOff: require('../assets/sounds/power_off.wav'),
+  loading: require('../assets/sounds/loading.wav'),
+  success: require('../assets/sounds/success.wav'),
+  error: require('../assets/sounds/error.wav'),
+};
 
 export function useDogdexSounds() {
   const { isAudioEnabled } = useAudio();
-  const sounds = useRef<{ [key: string]: Audio.Sound }>({});
+  // Single player instance — only 1 native ExoPlayer + MediaSession
+  const player = useAudioPlayer(null);
+  const currentSoundRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    const loadSounds = async () => {
-      try {
-        const { sound: sPowerOn } = await Audio.Sound.createAsync(require('../assets/sounds/power_on.wav'));
-        const { sound: sPowerOff } = await Audio.Sound.createAsync(require('../assets/sounds/power_off.wav'));
-        const { sound: sLoading } = await Audio.Sound.createAsync(require('../assets/sounds/loading.wav'), { isLooping: true });
-        const { sound: sSuccess } = await Audio.Sound.createAsync(require('../assets/sounds/success.wav'));
-        const { sound: sError } = await Audio.Sound.createAsync(require('../assets/sounds/error.wav'));
-
-        sounds.current = { powerOn: sPowerOn, powerOff: sPowerOff, loading: sLoading, success: sSuccess, error: sError };
-      } catch (err) {
-        console.warn("Audio assets missing or error loading:", err);
-      }
-    };
-    loadSounds();
-  }, []);
-
-  // Immediate stop when audio is disabled
-  useEffect(() => {
-    if (!isAudioEnabled) {
-      stopLoadingSound();
-      Object.values(sounds.current).forEach(snd => {
-        try { snd.stopAsync(); } catch(e) {}
-      });
-    }
-  }, [isAudioEnabled]);
-
-  const playSound = async (name: string) => {
+  const playSound = useCallback((name: string) => {
     if (!isAudioEnabled) return;
-    try {
-      const snd = sounds.current[name];
-      if (snd) {
-        if (name !== 'loading') {
-          await snd.replayAsync();
-        } else {
-          await snd.playAsync();
-        }
-      }
-    } catch(e) {}
-  };
 
-  const stopLoadingSound = async () => {
+    const source = SOUND_SOURCES[name];
+    if (!source || !player) return;
+
     try {
-      if (sounds.current.loading) {
-        await sounds.current.loading.stopAsync();
+      // Stop current playback before switching
+      player.pause();
+      
+      // Replace the audio source without creating a new native player
+      player.replace(source);
+      currentSoundRef.current = name;
+
+      if (name === 'loading') {
+        player.loop = true;
+      } else {
+        player.loop = false;
       }
-    } catch(e) {}
-  };
+
+      player.play();
+    } catch {
+      console.warn('Erro ao carregar sons do Dogdex');
+    }
+  }, [isAudioEnabled, player]);
+
+  const stopLoadingSound = useCallback(() => {
+    try {
+      if (player && currentSoundRef.current === 'loading') {
+        player.pause();
+        currentSoundRef.current = null;
+      }
+    } catch {
+      // ignore
+    }
+  }, [player]);
 
   return { playSound, stopLoadingSound };
 }

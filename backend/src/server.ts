@@ -1,4 +1,12 @@
 import 'dotenv/config';
+
+// HACK: Fix for @tensorflow/tfjs-node incompatibility with Node 20+
+// it expects util.isNullOrUndefined which was removed in recent Node versions
+import util from 'util';
+if (!(util as any).isNullOrUndefined) {
+  (util as any).isNullOrUndefined = (val: any) => val === null || val === undefined;
+}
+
 import express from 'express';
 // Triggering new build with corrected Render settings
 import cors from 'cors';
@@ -6,6 +14,27 @@ import { routes } from './routes';
 import { loadModel } from './ml/model';
 
 const app = express();
+
+// Configura o Express para confiar no proxy do Render (necessário para o rate-limit)
+app.set('trust proxy', 1);
+
+// Validação rigorosa de variáveis de ambiente obrigatórias
+const REQUIRED_ENVS = [
+  'DATABASE_URL',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'APP_MIN_VERSION',
+  'APP_STORE_URL'
+];
+
+const missingEnvs = REQUIRED_ENVS.filter(env => !process.env[env]);
+
+if (missingEnvs.length > 0) {
+  console.error('❌ ERRO CRÍTICO: Variáveis de ambiente obrigatórias ausentes:');
+  missingEnvs.forEach(env => console.error(`   - ${env}`));
+  console.error('\nO servidor não pode iniciar sem estas configurações. Abortando.');
+  process.exit(1);
+}
 
 const allowedOrigins = [
   process.env.API_URL,                        // Backend próprio (reset password page)
@@ -18,13 +47,22 @@ app.use(cors({
     // Requisições sem Origin (mobile nativo, Postman, curl) são permitidas
     if (!origin) return callback(null, true);
 
+    // LOG para debug
+    console.log(`[CORS] Request from origin: ${origin}`);
+
     const isAllowed = allowedOrigins.some(allowed =>
       allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
     );
 
-    if (isAllowed) {
+    // No desenvolvimento, vamos ser mais flexíveis se o IP começar com 192.168 ou 172 ou localhost
+    const isDevLocal = origin.startsWith('http://localhost') || 
+                      origin.startsWith('http://192.168.') || 
+                      origin.startsWith('http://172.');
+
+    if (isAllowed || isDevLocal) {
       callback(null, true);
     } else {
+      console.warn(`[CORS] Origin ${origin} blocked`);
       callback(new Error(`Origin ${origin} not allowed by CORS`));
     }
   },

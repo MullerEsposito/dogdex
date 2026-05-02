@@ -32,3 +32,10 @@ playwright/.cache/
 *.db
 backend/prisma/*.db
 backend/dev.db
+
+# Backend Env
+backend/.env.*
+
+# Logs
+*.txt
+*.log

@@ -25,7 +25,7 @@ export async function loadModel(): Promise<void> {
   }
 
   model = await tf.loadGraphModel(`file://${modelPath}`);
-  console.log(`Modelo carregado de: ${modelPath} 🚀`);
+  console.log(`✅ [MODEL] Modelo carregado de: ${modelPath} 🚀`);
 }
 
 export function getModel(): tf.GraphModel {

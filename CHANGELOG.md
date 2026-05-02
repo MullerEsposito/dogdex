@@ -2,6 +2,30 @@
 
 Track all changes, fixes, and improvements introduced in each version of the DogDex project.
 
+## [0.4.0] - 2026-05-02
+
+### Added
+- **Real-time Chat System**: Full implementation of the messaging backend and frontend, including unread message counters and real-time socket integration (Closes #14).
+- **App Update Checker**: Implementation of a version verification system that notifies users about mandatory updates (Closes #11).
+- **Adoption Map & Lifecycle**: Implementation of advanced filtering for points of interest and dog adoption tracking (Closes #6).
+- **UI Architecture Standard**: Enforced modular folder structure (`index.tsx` + `styles.ts`) across all screens and components (Closes #12).
+
+### Fixed
+- **Sync "Resurrection" Bug**: Fixed a data integrity issue where deleted entries would reappear after cloud synchronization.
+- **Android Multi-Build Support**: Decoupled `namespace` from `applicationId` in the Android build configuration, finally enabling simultaneous installation of Development and Production versions without compilation errors.
+- **Backend Model Loading**: Fixed a deployment issue where the TensorFlow model files were not being correctly copied to the production build directory (`dist/`).
+- **TFJS Compatibility**: Applied a polyfill for `util.isNullOrUndefined` and configured Express proxy trust to fix crashes and rate-limit errors in the Render environment.
+- **Camera Permission Bug**: Resolved critical issue where "Allow Once" on iOS/Android would break subsequent camera sessions (Closes #13).
+- **Onboarding Tour Overlap**: Fixed UI collision between the onboarding tour and navigation elements (Closes #7).
+
+### Improved
+- **Physical Deletion**: Refactored the sync engine to perform physical record removal from the database upon deletion request, ensuring user data privacy and storage efficiency.
+- **Build Infrastructure**: Standardized SDK 35 across the project for better stability with native libraries.
+- **Version Synchronization**: Unified version tracking between frontend and backend.
+- **Backend Transparency**: Removed development fallbacks for more predictable production deployments.
+
+---
+
 ## [0.3.0] - 2026-04-23
 
 ### Added
