@@ -6,7 +6,9 @@ module.exports = ({ config }) => {
     name: isDev ? `${config.name} (Dev)` : config.name,
     android: {
       ...config.android,
-      package: config.android.package,
+      package: isDev 
+      ? `${config.android.package}.dev` 
+      : config.android.package,
       config: {
         ...config.android.config,
         googleMaps: {

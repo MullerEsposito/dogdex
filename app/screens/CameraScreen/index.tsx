@@ -201,7 +201,12 @@ function MainCameraScreen() {
     requestPermissions();
   }, [getPermission]);
 
+  const lastStatusHandled = useRef<string>('idle');
+
   useEffect(() => {
+    // Só dispara se o status mudou para evitar loops infinitos de áudio
+    if (lastStatusHandled.current === status) return;
+    
     if (status === 'loading') {
       playSound('loading');
     } else {
@@ -214,6 +219,8 @@ function MainCameraScreen() {
         speakAnalyzeResult(result);
       }
     }
+    
+    lastStatusHandled.current = status;
   }, [status, result, playSound, stopLoadingSound, speakAnalyzeResult]);
 
   useEffect(() => {
