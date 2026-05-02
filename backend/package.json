@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "dotenv -e .env.development -- tsx --watch src/server.ts",
-    "build": "dotenv -e .env.production -- npx prisma generate ; tsc",
+    "build": "dotenv -e .env.production -- npx prisma generate ; tsc && mkdir -p dist/model && cp -r src/shared/model/dogdex_model_tfjs dist/model/ || true",
     "start": "node dist/server.js",
     "test": "dotenv -e .env.development -- jest --runInBand",
     "test:auth": "dotenv -e .env.development -- jest --testPathPatterns=auth.integration",
