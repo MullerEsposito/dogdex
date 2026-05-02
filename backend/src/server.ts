@@ -1,4 +1,12 @@
 import 'dotenv/config';
+
+// HACK: Fix for @tensorflow/tfjs-node incompatibility with Node 20+
+// it expects util.isNullOrUndefined which was removed in recent Node versions
+import util from 'util';
+if (!(util as any).isNullOrUndefined) {
+  (util as any).isNullOrUndefined = (val: any) => val === null || val === undefined;
+}
+
 import express from 'express';
 // Triggering new build with corrected Render settings
 import cors from 'cors';
@@ -6,6 +14,9 @@ import { routes } from './routes';
 import { loadModel } from './ml/model';
 
 const app = express();
+
+// Configura o Express para confiar no proxy do Render (necessário para o rate-limit)
+app.set('trust proxy', 1);
 
 // Validação rigorosa de variáveis de ambiente obrigatórias
 const REQUIRED_ENVS = [
