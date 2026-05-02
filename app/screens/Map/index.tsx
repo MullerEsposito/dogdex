@@ -60,15 +60,24 @@ export default function MapScreen() {
 
   const fetchUnreadCount = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      // Se não houver sessão ou houver erro no supabase, não tentamos buscar o count
+      if (!session || error) {
+        if (unreadCount !== 0) setUnreadCount(0);
+        return;
+      }
 
       const response = await chatService.getUnreadCount(session.access_token);
       if (response.success) {
         setUnreadCount(response.data.count);
+      } else if (response.status === 401) {
+        // Se o backend retornar 401, limpamos o count (token inválido no backend)
+        setUnreadCount(0);
       }
     } catch (error) {
-      console.error('Error fetching unread count:', error);
+      // Erro silencioso para não poluir o log em caso de falha de conexão ou 401 intermitente
+      console.log('Unread count fetch paused: session unavailable');
     }
   };
 

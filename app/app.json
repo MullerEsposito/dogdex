@@ -12,6 +12,15 @@
       "supportsTablet": true,
       "buildNumber": "6"
     },
+    "splash": {
+      "image": "./assets/images/android-icon-foreground.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#8DB0C2"
+    },
+    "androidStatusBar": {
+      "backgroundColor": "#8DB0C2",
+      "translucent": true
+    },
     "android": {
       "package": "com.mulleresposito.dogdex",
       "versionCode": 6,
@@ -36,8 +45,8 @@
         "expo-build-properties",
         {
           "android": {
-            "compileSdkVersion": 36,
-            "targetSdkVersion": 36,
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
             "kotlinVersion": "2.0.21",
             "extraGradleProperties": [
               "org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m",
@@ -62,7 +71,6 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/android-icon-foreground.png",
-          "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#8DB0C2"
         }

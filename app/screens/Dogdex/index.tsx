@@ -37,12 +37,10 @@ export default function DogdexScreen() {
   }, [getEntries]);
 
   const handleSync = useCallback(async () => {
-    if (isSyncing) return;
     setIsSyncing(true);
     try {
       const result = await syncWithCloud();
       if (result.pulled > 0 || result.pushed > 0) {
-        // Reload if anything changed
         const data = await getEntries();
         setEntries(data);
       }
@@ -51,15 +49,19 @@ export default function DogdexScreen() {
     } finally {
       setIsSyncing(false);
     }
-  }, [isSyncing, syncWithCloud, getEntries]);
+  }, [syncWithCloud, getEntries]);
 
   useEffect(() => {
+    let mounted = true;
     const init = async () => {
       await loadData();
-      await handleSync(); // Auto-sync on load
+      if (mounted) {
+        await handleSync();
+      }
     };
     init();
-  }, [loadData, handleSync]);
+    return () => { mounted = false; };
+  }, []); // Only once on mount
 
   const handleDelete = async (id: string, name: string) => {
     const performDelete = async () => {

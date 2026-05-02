@@ -7,6 +7,24 @@ import { loadModel } from './ml/model';
 
 const app = express();
 
+// Validação rigorosa de variáveis de ambiente obrigatórias
+const REQUIRED_ENVS = [
+  'DATABASE_URL',
+  'SUPABASE_URL',
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'APP_MIN_VERSION',
+  'APP_STORE_URL'
+];
+
+const missingEnvs = REQUIRED_ENVS.filter(env => !process.env[env]);
+
+if (missingEnvs.length > 0) {
+  console.error('❌ ERRO CRÍTICO: Variáveis de ambiente obrigatórias ausentes:');
+  missingEnvs.forEach(env => console.error(`   - ${env}`));
+  console.error('\nO servidor não pode iniciar sem estas configurações. Abortando.');
+  process.exit(1);
+}
+
 const allowedOrigins = [
   process.env.API_URL,                        // Backend próprio (reset password page)
   /^http:\/\/localhost(:\d+)?$/,              // Dev local (qualquer porta)

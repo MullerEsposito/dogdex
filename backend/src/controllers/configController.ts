@@ -20,7 +20,7 @@ export const getVersionConfig = async (req: Request, res: Response) => {
     const storeUrl = process.env.APP_STORE_URL;
 
     if (!minVersion || !storeUrl) {
-      console.error('❌ ERRO: Variáveis de ambiente APP_MIN_VERSION ou APP_STORE_URL não definidas!');
+      console.error('❌ ERRO CRÍTICO: Variáveis de ambiente APP_MIN_VERSION ou APP_STORE_URL não definidas!');
       return res.status(500).json({
         success: false,
         error: 'Configuração de versão incompleta no servidor'

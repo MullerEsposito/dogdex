@@ -37,17 +37,30 @@ export const push = async (req: Request, res: Response) => {
        });
 
        if (!existing) {
-         await prisma.dogEntry.create({ data: entry });
-         count++;
+         // Só cria se não for um comando de delete
+         if (entry.status !== 'deleted') {
+           await prisma.dogEntry.create({ data: entry });
+           count++;
+         }
        } else {
-         // ATUALIZA o registro existente (especialmente o status)
-         await prisma.dogEntry.update({
-           where: { id: existing.id },
-           data: { 
-             status: entry.status,
-             // atualiza outros campos se necessário
+         if (entry.status === 'deleted') {
+           // Se existe e o status é deleted, removemos fisicamente do banco
+           try {
+             await prisma.dogEntry.delete({ where: { id: existing.id } });
+             console.log(`🗑️ [BACKEND] Entry ${entry.localId} (DB ID: ${existing.id}) deleted from database.`);
+           } catch (delError) {
+             console.error(`❌ [BACKEND] Failed to delete entry ${existing.id}:`, delError);
            }
-         });
+         } else {
+           // ATUALIZA o registro existente (especialmente o status)
+           await prisma.dogEntry.update({
+             where: { id: existing.id },
+             data: { 
+               status: entry.status,
+               imageUri: entry.imageUri // Atualiza a URI se ela tiver mudado (ex: cloud upload)
+             }
+           });
+         }
        }
     }
 
@@ -65,7 +78,7 @@ export const pull = async (req: Request, res: Response) => {
     const entries = await prisma.dogEntry.findMany({
       where: { 
         userId: userId,
-        status: { not: 'deleted' } // Não retorna itens apagados
+        status: 'synced' // Apenas retorna o que está efetivamente sincronizado e ativo
       },
       orderBy: { timestamp: 'desc' }
     });
