@@ -1,4 +1,11 @@
 import 'dotenv/config';
+import dns from 'dns';
+
+// Força o Node.js a priorizar IPv4 sobre IPv6. 
+// Isso resolve o erro ENETUNREACH no Render ao tentar conectar no Supabase via IPv6.
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder('ipv4first');
+}
 
 // HACK: Fix for @tensorflow/tfjs-node incompatibility with Node 20+
 // it expects util.isNullOrUndefined which was removed in recent Node versions
@@ -121,6 +128,12 @@ const PORT = process.env.PORT || 3000;
 async function start() {
   try {
     await loadModel();
+    
+    // Verifica conexão com o banco de dados (Prisma)
+    const { getPrisma } = require('./services/prisma');
+    const prisma = getPrisma();
+    await prisma.$connect();
+    console.log('✅ Conexão com o banco de dados estabelecida.');
 
     app.listen(Number(PORT), '0.0.0.0', () => {
       console.log(`Servidor rodando em porta ${PORT} 🚀`);
