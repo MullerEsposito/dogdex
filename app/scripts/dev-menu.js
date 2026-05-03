@@ -69,6 +69,8 @@ const main = async () => {
     
     const buildOption = await ask('Escolha uma opção (1, 2 ou 3): ');
 
+    let targetEnv = null;
+
     if (buildOption.trim() === '1') {
       // BUILD DEV (Permite escolher a API)
       console.log('\n3. Com qual API o Build Dev deve se comunicar?');
@@ -80,20 +82,30 @@ const main = async () => {
       const apiUrl = apiOption.trim() === '2' ? API_DEVELOPMENT : `http://${getLocalIpAddress()}:3000`;
       
       envContent = buildEnv('development', apiUrl, SUPABASE_DEV_URL, SUPABASE_DEV_KEY);
-      command = `npx expo prebuild && cd android && .\\gradlew.bat assembleDebug`;
+      targetEnv = 'development';
+      command = `npx expo prebuild && node -e "require('fs').writeFileSync('android/.build_env', 'development')" && cd android && .\\gradlew.bat assembleDebug`;
       console.log(`\n✅ Preparando Build Dev (APK)... (API: ${apiUrl})`);
       
     } else if (buildOption.trim() === '2' || buildOption.trim() === '3') {
       // BUILD PROD / BUNDLE PROD (Força uso da API e DB de Produção)
       envContent = buildEnv('production', API_PROD, SUPABASE_PROD_URL, SUPABASE_PROD_KEY);
+      targetEnv = 'production';
       const isBundle = buildOption.trim() === '3';
-      command = `npx expo prebuild && cd android && .\\gradlew.bat ${isBundle ? 'bundleRelease' : 'assembleRelease'}`;
+      command = `npx expo prebuild && node -e "require('fs').writeFileSync('android/.build_env', 'production')" && cd android && .\\gradlew.bat ${isBundle ? 'bundleRelease' : 'assembleRelease'}`;
       console.log(`\n✅ Preparando ${isBundle ? 'Bundle Prod (AAB)' : 'Build Prod (APK)'}...`);
       console.log(`🔒 AMBIENTE TRAVADO EM PRODUÇÃO (API + Supabase)`);
     } else {
       console.log('\n❌ Opção inválida.');
       process.exit(1);
     }
+
+    // Persiste as variáveis no .env.local antes do prebuild
+    fs.writeFileSync(envLocalPath, envContent);
+    console.log(`📝 Arquivo .env.local gerado com sucesso.`);
+
+    // Prepara a pasta Android baseando-se no cache
+    prepareAndroidFolder(targetEnv);
+
   } else if (actionOption.trim() === '2') {
     // FLUXO: INICIAR SERVIDOR
     console.log('\n2. Com qual API o servidor de dev deve se comunicar?');
@@ -108,14 +120,14 @@ const main = async () => {
     // Usamos -c para limpar o cache e garantir que o novo .env.local seja lido
     command = `npx expo start --dev-client -c`;
     console.log(`\n✅ Iniciando Servidor Local... (API: ${apiUrl})`);
+    
+    // Persiste as variáveis no .env.local
+    fs.writeFileSync(envLocalPath, envContent);
+    console.log(`📝 Arquivo .env.local gerado com sucesso.`);
   } else {
     console.log('\n❌ Opção inválida.');
     process.exit(1);
   }
-
-  // Persiste as variáveis no .env.local
-  fs.writeFileSync(envLocalPath, envContent);
-  console.log(`📝 Arquivo .env.local gerado com sucesso.`);
 
   console.log(`\n> Executando: ${command}\n`);
   try {
@@ -133,6 +145,46 @@ function buildEnv(appEnv, apiUrl, supabaseUrl, supabaseKey) {
   content += `EXPO_PUBLIC_SUPABASE_URL=${supabaseUrl}\n`;
   content += `EXPO_PUBLIC_SUPABASE_ANON_KEY=${supabaseKey}\n`;
   return content;
+}
+
+function prepareAndroidFolder(targetEnv) {
+  const androidPath = path.resolve(process.cwd(), 'android');
+  const markerPath = path.resolve(androidPath, '.build_env');
+  const devPath = path.resolve(process.cwd(), 'android_dev');
+  const prodPath = path.resolve(process.cwd(), 'android_prod');
+
+  let currentEnv = null;
+  if (fs.existsSync(androidPath)) {
+    if (fs.existsSync(markerPath)) {
+      currentEnv = fs.readFileSync(markerPath, 'utf8').trim();
+    } else {
+      currentEnv = 'unknown';
+    }
+
+    if (currentEnv === targetEnv) {
+      console.log(`\n♻️  Pasta android já configurada para ${targetEnv}. Aproveitando cache nativo!`);
+      return; 
+    }
+
+    if (currentEnv === 'development') {
+      if (fs.existsSync(devPath)) fs.rmSync(devPath, { recursive: true, force: true });
+      fs.renameSync(androidPath, devPath);
+      console.log(`\n📦 Guardando cache nativo de development em /android_dev...`);
+    } else if (currentEnv === 'production') {
+      if (fs.existsSync(prodPath)) fs.rmSync(prodPath, { recursive: true, force: true });
+      fs.renameSync(androidPath, prodPath);
+      console.log(`\n📦 Guardando cache nativo de production em /android_prod...`);
+    } else {
+      fs.rmSync(androidPath, { recursive: true, force: true });
+      console.log(`\n🗑️  Limpando pasta android (build antigo sem cache)...`);
+    }
+  }
+
+  const targetBackupPath = targetEnv === 'development' ? devPath : prodPath;
+  if (fs.existsSync(targetBackupPath)) {
+    fs.renameSync(targetBackupPath, androidPath);
+    console.log(`\n♻️  Restaurando cache nativo de ${targetEnv}...`);
+  }
 }
 
 function ask(question) {

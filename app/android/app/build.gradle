@@ -89,7 +89,7 @@ android {
 
     namespace 'com.mulleresposito.dogdex'
     defaultConfig {
-        // O applicationId agora é injetado dinamicamente pelo Expo (app.config.js)
+        applicationId 'com.mulleresposito.dogdex'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 6

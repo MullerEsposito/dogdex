@@ -37,19 +37,18 @@ export default function DogdexScreen() {
   }, [getEntries]);
 
   const handleSync = useCallback(async () => {
+    if (isSyncing) return;
     setIsSyncing(true);
     try {
-      const result = await syncWithCloud();
-      if (result.pulled > 0 || result.pushed > 0) {
-        const data = await getEntries();
-        setEntries(data);
-      }
+      await syncWithCloud();
+      const data = await getEntries();
+      setEntries(data);
     } catch {
       console.warn('Silent sync failed');
     } finally {
       setIsSyncing(false);
     }
-  }, [syncWithCloud, getEntries]);
+  }, [syncWithCloud, getEntries, isSyncing]);
 
   useEffect(() => {
     let mounted = true;
@@ -61,7 +60,7 @@ export default function DogdexScreen() {
     };
     init();
     return () => { mounted = false; };
-  }, []); // Only once on mount
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDelete = async (id: string, name: string) => {
     const performDelete = async () => {
